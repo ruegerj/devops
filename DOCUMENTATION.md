@@ -1,5 +1,7 @@
 # DevOps - Group 08
 
+Hello World GitHub Actions!
+
 Members:
 
 * Andreas Affentranger

@@ -1,0 +1,30 @@
+name: Sync docs
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - DOCUMENTATION.md
+
+jobs:
+  sync-to-gitlab:
+    name: Sync to GitLab
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: |
+          sudo apt install -y jq
+
+      - name: Push to GitLab
+        run: |
+          docs_content=$(cat DOCUMENTATION.md)
+          sync_commit="[sync]: ${{ github.event.head_commit.message }}"
+          jq -n --arg content "$docs_content" --arg commitMsg "$sync_commit" \
+            '{branch:"main", author_name:"G08 Bot", commit_message:$commitMsg, content:$content}' \
+            | curl --request PUT \
+                --header "PRIVATE-TOKEN: ${{ secrets.GITLAB_TOKEN }}" \
+                --header "Content-Type: application/json" \
+                --data @- \
+                --url "https://gitlab.switch.ch/api/v4/projects/${{ vars.GITLAB_PROJECT_ID }}/repository/files/DOCUMENTATION.md"
