@@ -12,4 +12,5 @@ jobs:
         with:
           go-version: ${{ vars.GO_VERSION }}
       - name: Test
+        working-directory: api
         run: go test -v ./...
