@@ -1,11 +1,19 @@
 package middleware
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwt"
+)
+
+type AuthContextKey int // use dedicated key type to prevent context key collisions
+
+const (
+	AuthSubjectKey AuthContextKey = iota
 )
 
 func Authenticate(privateKey string, logger *slog.Logger, next http.Handler) http.Handler {
@@ -21,8 +29,10 @@ func Authenticate(privateKey string, logger *slog.Logger, next http.Handler) htt
 		if subject, exists := token.Subject(); exists {
 			username = subject
 		}
-		logger.Info("Authenticated user: ", slog.String("username", username))
+		ctx := context.WithValue(r.Context(), AuthSubjectKey, username)
+		r = r.WithContext(ctx)
 
+		logger.Info(fmt.Sprintf("Authenticated user: %s", username), slog.String("username", username))
 		next.ServeHTTP(w, r)
 	})
 }

@@ -12,8 +12,6 @@ import (
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
 	host, err := resolveEnvVar("HOST")
 	if err != nil {
 		log.Panic(err)
@@ -28,6 +26,8 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	router := http.NewServeMux()
 	router.HandleFunc("/health", handlers.Health)
