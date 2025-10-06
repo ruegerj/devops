@@ -19,6 +19,8 @@ VMs:
 - [Project Idea & Tools](#project-idead--tools)
 - [Prerequisites & Setup](#prerequisites--setup)
   - [Local Workspace](#local-workspace)
+- [Applications](#applications)
+  - [REST API](#rest-api)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
 
@@ -30,7 +32,7 @@ VMs:
 Dummy app that displays some information fetched from a private REST api.
 
 - [ ] Frontend - SvelteKit
-- [ ] Backend - Go REST API
+- [x] Backend - Go REST API
 - [ ] (Database - PostgreSQL) optional as extension
 
 **DevOps Features**
@@ -68,6 +70,7 @@ In order work on the applications & pipelines locally, one needs the following t
 - [Go](https://go.dev/) (v1.25)
 - [golangci-lint](https://golangci-lint.run/) (>= v2.5.0)
 - [Task](taskfile.dev) (v3)
+- [Docker](https://www.docker.com/)
 
 Recommended but not mandatory:
 
@@ -88,6 +91,73 @@ task run
 ```
 
 > All commands are written with unix systems in mind (Linux & Mac). If you are on Windows - try using a WSL instance if you are facing issues.
+
+## Applications
+
+### REST API
+
+The REST API is written in Go. It features one main endpoint holding a "secret" value which can only be accessed when authenticated.
+
+**Configuration:**
+
+All configuration options are supplied as environment variables. When running the app locally via _Task_, they are automatically supplied from the
+`.env` file. One for development purposes can be generated using the following command:
+
+```bash
+task generateEnv
+```
+
+The followin variables need to be set, else the app wont start up.
+
+| Key     | Description                                                       | Default value (Docker) |
+| ------- | ----------------------------------------------------------------- | ---------------------- |
+| HOST    | holds the hostname which the server listens on                    | 0.0.0.0                |
+| PORT    | holds the TCP port number the server listens on                   | 3000                   |
+| JWT_KEY | holds the symmetric signing key used to verify the JWT signatures | _none_                 |
+
+**Endpoints:**
+
+- `GET /health` - Indicates if the application is up and running
+  - Authentication: _none_
+  - Sample response:
+    ```json
+    {
+      "status": "healthy",
+      "timestamp": 1759777840
+    }
+    ```
+- `GET /api/secret` - Holds secret value, only to be accessed by authenticated requests
+  - Authentication: _Bearer token_ (JWT, HS256 symmetrically signed)
+  - Sample request:
+    ```bash
+    curl --request GET \
+      --url http://localhost:3000/api/secret \
+      --header 'authorization: Bearer <jwt>'
+    ```
+  - Sample response:
+    ```json
+    {
+      "message":"Some text",
+      "number": 27
+    }
+    ```
+
+**Tests:**
+
+Most of the app's code is tested using unit tests. They live right next to their implementation in `x_test.go` files and are usually scoped in
+their own testing module.
+
+End-to-end (e2e) tests are located under _tests/e2e_. Before they are executed, the complete app is bootstrapped as [testcontainer](https://testcontainers.com/).
+To be able to distinguish these tests from the unit tests, they must have the [build tag](https://pkg.go.dev/go/build#hdr-Build_Constraints) `e2e`.
+
+In order to run the tests locally, use the following commands:
+
+```bash
+task test # both unit & e2e
+task test:unit # unit tests only
+task test:e2e # e2e tests only
+```
+
 
 ## Miscellaneous
 
