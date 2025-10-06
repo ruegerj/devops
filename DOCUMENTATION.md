@@ -17,6 +17,8 @@ VMs:
 ## Table of contents
 
 - [Project Idea & Tools](#project-idead--tools)
+- [Prerequisites & Setup](#prerequisites--setup)
+  - [Local Workspace](#local-workspace)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
 
@@ -57,11 +59,41 @@ Dummy app that displays some information fetched from a private REST api.
 - [ ] Database with automated backup
 - [ ] Database with schema change
 
+## Prerequisites & Setup
+
+### Local Workspace
+
+In order work on the applications & pipelines locally, one needs the following tools:
+
+- [Go](https://go.dev/) (v1.25)
+- [golangci-lint](https://golangci-lint.run/) (>= v2.5.0)
+- [Task](taskfile.dev) (v3)
+
+Recommended but not mandatory:
+
+- [act](https://github.com/nektos/act)
+- [openssl](https://openssl-library.org/) (if you want to generate JWTs by hand)
+
+For starting the application locally, testing, linting, or any other automations [Task](taskfile.dev) is used as a modern cross-platform Make
+alternative. You can run task cmd's either in the repository root or in the dedicated subdirectories of the applications:
+
+```bash
+# start the api (cwd: ./)
+task api:run
+
+# start the api (cwd: ./api)
+task run
+
+# use: task --list-all for discovery of other cmd's
+```
+
+> All commands are written with unix systems in mind (Linux & Mac). If you are on Windows - try using a WSL instance if you are facing issues.
+
 ## Miscellaneous
 
 ### GitLab Docs Sync
 
-The main entry point for the course & grading is a repository hosted by the [Switch GitLab](https://gitlab.switch.ch/hslu/edu/bachelor-computer-science/devops/25hs01/g08/g08-documentation/).
+The main entry point for the course & grading is a repository hosted on the [Switch GitLab](https://gitlab.switch.ch/hslu/edu/bachelor-computer-science/devops/25hs01/g08/g08-documentation/).
 As a fancy way to be able to view the documentation still in the GitLab repository, a GitHub Actions [workflow](/.github/workflows/sync-docs.yaml)
 was created in order to syn  the contents of this file to the GitLab repo.
 
