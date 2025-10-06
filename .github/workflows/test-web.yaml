@@ -34,7 +34,7 @@ jobs:
         if: steps.cache-node_modules.outputs.cache-hit != true
         run: pnpm install --frozen-lockfile
 
-      - name: Build
+      - name: Test (Unit)
         run: pnpm run test:unit
 
   test-e2e:
@@ -72,4 +72,4 @@ jobs:
         run: pnpm dlx playwright install --with-deps
 
       - name: Run Playwright Tests
-        run: pnpm dlx playwright test
+        run: pnpm run test:e2e
