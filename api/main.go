@@ -14,9 +14,6 @@ import (
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	router := http.NewServeMux()
-	router.HandleFunc("/health", handlers.Health)
-
 	host, err := resolveEnvVar("HOST")
 	if err != nil {
 		log.Panic(err)
@@ -26,6 +23,15 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	jwtKey, err := resolveEnvVar("JWT_KEY")
+	if err != nil {
+		log.Panic(err)
+	}
+
+	router := http.NewServeMux()
+	router.HandleFunc("/health", handlers.Health)
+	router.Handle("/api/secret", middleware.Authenticate(jwtKey, logger, http.HandlerFunc(handlers.Secret)))
 
 	handler := middleware.Logging(logger, router)
 	addr := fmt.Sprintf("%s:%s", host, port)
