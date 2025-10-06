@@ -2,27 +2,41 @@ version: "3"
 
 tasks:
   run:
+    desc: Launches the api locally with the environment variables provided in .env
     dotenv: [.env]
     cmds:
       - go run .
 
+  build:
+    desc: Builds the binary for the current host OS and architecture
+    cmds:
+      - go build -o bin/api .
+    generates:
+      - bin/api
+
   lint:
+    desc: Runs static linters (golangci-lint)
     cmds:
       - golangci-lint run
 
   test:
+    desc: Runs all tests of the project
     cmds:
       - go test -v ./...
 
-  generateEnv:
+  generate:env:
+    desc: Generates a .env file holding all relevant options for a local workspace
     cmds:
       - touch .env
       - truncate -s 0 .env
       - echo "HOST=localhost" >> .env
       - echo "PORT=3000" >> .env
       - echo "JWT_KEY=$(openssl rand -base64 32)" >> .env
+    generates:
+      - .env
 
-  generateJWT:
+  generate:jwt:
+    desc: Generates a valid JWT, which is symmetrically signed by the key stored in .env (JWT_KEY)
     dotenv: [.env]
     silent: true
     preconditions:
