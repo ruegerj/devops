@@ -3,12 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"log/slog"
-	"net/http"
-	"os"
-
-	"github.com/ruegerj/devops/api/handlers"
-	"github.com/ruegerj/devops/api/middleware"
 )
 
 func main() {
@@ -27,19 +21,9 @@ func main() {
 		log.Panic(err)
 	}
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	var app App
+	app.Initialize(jwtKey)
 
-	router := http.NewServeMux()
-	router.HandleFunc("/health", handlers.Health)
-	router.Handle("/api/secret", middleware.Authenticate(jwtKey, logger, http.HandlerFunc(handlers.Secret)))
-
-	handler := middleware.Logging(logger, router)
 	addr := fmt.Sprintf("%s:%s", host, port)
-
-	fmt.Printf("Server starting on %s...\n", addr)
-
-	if err := http.ListenAndServe(addr, handler); err != nil {
-		log.Fatal("Server failed to start:", err)
-		os.Exit(1)
-	}
+	app.Run(addr)
 }

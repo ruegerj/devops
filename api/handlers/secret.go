@@ -7,11 +7,6 @@ import (
 )
 
 func Secret(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 
 	response := map[string]any{
