@@ -1,0 +1,20 @@
+name: CI Web
+on:
+  push:
+    branches: [main]
+    paths: [web/*, .github/*]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-web.yaml
+
+  lint:
+    uses: ./.github/workflows/lint-web.yaml
+    needs: [build]
+
+  test:
+    uses: ./.github/workflows/test-web.yaml
+    needs: [build]
