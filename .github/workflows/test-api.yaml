@@ -6,6 +6,9 @@ jobs:
   test-unit:
     name: Test (Unit)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -18,6 +21,9 @@ jobs:
   test-e2e:
     name: Test (E2E)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5

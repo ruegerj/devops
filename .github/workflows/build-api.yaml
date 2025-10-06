@@ -6,10 +6,12 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.GO_VERSION }}
       - run: go build -v ./...
-        working-directory: api

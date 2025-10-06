@@ -105,6 +105,7 @@ func TestSecretEndoint_ValidJwt_ResponseReceived(t *testing.T) {
 	// THEN
 	require.NoError(t, err, "request must succeed")
 	require.Equal(t, http.StatusOK, resp.StatusCode, "must have status 200")
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	rawBody, err := readBodyFrom(t, resp)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedResponse, rawBody)

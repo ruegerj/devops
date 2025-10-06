@@ -6,6 +6,9 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -13,5 +16,3 @@ jobs:
           go-version: ${{ vars.GO_VERSION }}
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
-        with:
-          working-directory: api
