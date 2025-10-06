@@ -21,6 +21,8 @@ VMs:
   - [Local Workspace](#local-workspace)
 - [Applications](#applications)
   - [REST API](#rest-api)
+- [Pipelines](#pipelines)
+  - [Continous Integration - API](#continous-integration---api)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
 
@@ -38,9 +40,9 @@ Dummy app that displays some information fetched from a private REST api.
 **DevOps Features**
 
 - [ ] CI Pipeline (GitHub Actions)
-    - [ ] Build
-    - [ ] Lint
-    - [ ] Test
+    - [X] Build
+    - [X] Lint
+    - [X] Test
     - [ ] Static Code Analysis (Snyk?)
 
 - [ ] CD Pipeline (Github Actions)
@@ -158,6 +160,35 @@ task test:unit # unit tests only
 task test:e2e # e2e tests only
 ```
 
+## Pipelines
+
+### Continous Integration - API
+
+```mermaid
+---
+title: CI API
+---
+flowchart LR
+    trigger_push[/push 'main'/]
+    trigger_pr[/PR -> 'main'/]
+    build(build)
+    lint(lint)
+    test_unit(unit test)
+    test_e2e(e2e test)
+
+    trigger_push --> build
+    trigger_pr --> build
+    build --> lint
+    build --> test_unit
+    build --> test_e2e
+```
+
+The pipeline runs for every _push_ and _pull request_ targeting the `main` branch. It features the following steps:
+
+- **build** - Builds the entire codebase in order to find any compilation errors.
+- **lint** - Statically checks the codebase for potential quality flaws using [golangci-lint](https://golangci-lint.run/)
+- **unit test** - runs all unit tests
+- **e2e test** - runs all e2e tests against a testcontainer instance of the app (see _Tests_ section of [API](#rest-api))
 
 ## Miscellaneous
 
