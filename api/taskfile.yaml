@@ -22,7 +22,18 @@ tasks:
   test:
     desc: Runs all tests of the project
     cmds:
+      - task: test:unit
+      - task: test:e2e
+
+  test:unit:
+    desc: Runs only the unit tests of the project
+    cmds:
       - go test -v ./...
+
+  test:e2e:
+    desc: Runy only the e2e tests of the project
+    cmds:
+      - go test -v -tags e2e ./tests/e2e/...
 
   generate:env:
     desc: Generates a .env file holding all relevant options for a local workspace

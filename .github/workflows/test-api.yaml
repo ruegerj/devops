@@ -3,8 +3,8 @@ on:
   workflow_call:
 
 jobs:
-  test:
-    name: Test
+  test-unit:
+    name: Test (Unit)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,3 +14,15 @@ jobs:
       - name: Test
         working-directory: api
         run: go test -v ./...
+
+  test-e2e:
+    name: Test (E2E)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ vars.GO_VERSION }}
+      - name: Test
+        working-directory: api
+        run: go test -v -tags e2e ./tests/e2e/...
