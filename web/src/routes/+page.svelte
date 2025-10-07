@@ -25,34 +25,36 @@
 	}
 </script>
 
-<div class="px-16 md:px-20 lg:px-24 xl:px-28">
-	<Card.Root>
-		<Card.Header class="flex justify-center">
-			<Card.Title class=" text-4xl font-extrabold tracking-tight text-balance">
-				Secret Vault
-			</Card.Title>
-		</Card.Header>
-		<Card.Content class="flex justify-center">
-			{#if !secretContent}
-				<p class="text-gray-500">Open it up to see its contents...</p>
-			{:else}
-				<div>
-					<CodeJar class="bg-card" code={secretContent} enabled={false} />
-				</div>
-			{/if}
-		</Card.Content>
-		<Card.Footer class="flex justify-center">
-			{#if !secretContent}
-				<Button class="cursor-pointer" onclick={fetchSecret}>
-					<IconUnlockKeyhole />
-					Open
-				</Button>
-			{:else}
-				<Button class="cursor-pointer" onclick={reloadPage}>
-					<IconLockKeyhole />
-					Lock
-				</Button>
-			{/if}
-		</Card.Footer>
-	</Card.Root>
+<div class="flex justify-center px-16 md:px-20 lg:px-24 xl:px-28">
+	<div class="w-full md:w-3xl lg:w-3xl xl:w-2xl">
+		<Card.Root>
+			<Card.Header class="flex justify-center">
+				<Card.Title class=" text-4xl font-extrabold tracking-tight text-balance">
+					Secret Vault
+				</Card.Title>
+			</Card.Header>
+			<Card.Content class="flex justify-center">
+				{#if !secretContent}
+					<p class="text-gray-500">Open it up to see its contents...</p>
+				{:else}
+					<div>
+						<CodeJar class="bg-card" code={secretContent} enabled={false} />
+					</div>
+				{/if}
+			</Card.Content>
+			<Card.Footer class="flex justify-center">
+				{#if !secretContent}
+					<Button class="cursor-pointer" onclick={fetchSecret}>
+						<IconUnlockKeyhole />
+						Open
+					</Button>
+				{:else}
+					<Button class="cursor-pointer" onclick={reloadPage}>
+						<IconLockKeyhole />
+						Lock
+					</Button>
+				{/if}
+			</Card.Footer>
+		</Card.Root>
+	</div>
 </div>
