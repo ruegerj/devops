@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { ModeWatcher } from 'mode-watcher';
 	import { ThemeToggleBtn } from '$lib/components/custom';
+	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children } = $props();
 </script>
@@ -25,3 +26,4 @@
 </div>
 
 <ModeWatcher />
+<Toaster />

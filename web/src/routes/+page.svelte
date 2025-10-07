@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
+	import { toast } from 'svelte-sonner';
 	import IconUnlockKeyhole from 'virtual:icons/lucide/unlock-keyhole';
 	import IconLockKeyhole from 'virtual:icons/lucide/lock-keyhole';
 
@@ -8,6 +9,12 @@
 
 	async function fetchSecret() {
 		const response = await fetch('/api/secret');
+		if (!response.ok) {
+			console.error('Secret retrieval failed', response.status, response.statusText);
+			toast.error('Vault is temporarily sealed - try again later...');
+			return;
+		}
+
 		const content = await response.json();
 		secretContent = JSON.stringify(content, null, 3);
 	}
