@@ -16,3 +16,5 @@ jobs:
           go-version: ${{ vars.GO_VERSION }}
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
+        with:
+          working-directory: api

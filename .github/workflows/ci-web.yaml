@@ -19,3 +19,4 @@ jobs:
   test:
     uses: ./.github/workflows/test-web.yaml
     needs: [build]
+    secrets: inherit
