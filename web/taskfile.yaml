@@ -44,6 +44,8 @@ tasks:
 
   generate:env:
     desc: Generates a .env file holding all relevant options for a local workspace
+    preconditions:
+      - stat ../api/.env
     cmds:
       - touch .env
       - truncate -s 0 .env

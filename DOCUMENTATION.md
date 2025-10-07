@@ -21,6 +21,7 @@ VMs:
   - [Local Workspace](#local-workspace)
 - [Applications](#applications)
   - [REST API](#rest-api)
+  - [Web Frontend](#web-frontend)
 - [Pipelines](#pipelines)
   - [Continous Integration - API](#continous-integration---api)
 - [Miscellaneous](#miscellaneous)
@@ -33,8 +34,8 @@ VMs:
 
 Dummy app that displays some information fetched from a private REST api.
 
-- [ ] Frontend - SvelteKit
-- [x] Backend - Go REST API
+- [X] Frontend - SvelteKit
+- [X] Backend - Go REST API
 - [ ] (Database - PostgreSQL) optional as extension
 
 **DevOps Features**
@@ -73,6 +74,7 @@ In order work on the applications & pipelines locally, one needs the following t
 - [golangci-lint](https://golangci-lint.run/) (>= v2.5.0)
 - [Task](taskfile.dev) (v3)
 - [Docker](https://www.docker.com/)
+- [pnpm](https://pnpm.io/) (v10.x)
 
 Recommended but not mandatory:
 
@@ -96,20 +98,37 @@ task run
 
 ## Applications
 
+The following diagram gives a brief overview on the application architecture. For more details see the corresponding sub sections.
+
+```mermaid
+---
+title: Architecture Overview
+---
+flowchart LR
+    browser["Browser"]
+    svelte["SvelteKit"]
+    api["Go API"]
+
+    browser --> |Http| svelte
+    svelte -- "REST (JWT)" --> api
+    api -.-> |Protected content| svelte
+    svelte -.-> |Http| browser
+```
+
 ### REST API
 
 The REST API is written in Go. It features one main endpoint holding a "secret" value which can only be accessed when authenticated.
 
 **Configuration:**
 
-All configuration options are supplied as environment variables. When running the app locally via _Task_, they are automatically supplied from the
-`.env` file. One for development purposes can be generated using the following command:
+All configuration options are supplied as environment variables. When running the app locally via _Task_, they are automatically
+supplied from the `.env` file. One for development purposes can be generated using the following command:
 
 ```bash
-task generateEnv
+task generate:env
 ```
 
-The followin variables need to be set, else the app wont start up.
+The following variables need to be set for the app to function properly:
 
 | Key     | Description                                                       | Default value (Docker) |
 | ------- | ----------------------------------------------------------------- | ---------------------- |
@@ -159,6 +178,71 @@ task test # both unit & e2e
 task test:unit # unit tests only
 task test:e2e # e2e tests only
 ```
+
+### Web Frontend
+
+The frontend is built using [SvelteKit](https://svelte.dev/docs/kit/introduction) as meta framework. It renders the UI and makes
+authenticated calls to the [REST Api](#rest-api) in order to fetch data.
+
+**Configuration:**
+
+All configuration options are supplied as environment variables. When running the app locally, they are automatically supplied from
+the `.env` file. One for development purposes can be generated using the following command:
+
+```bash
+task generate:env
+```
+
+> Note: the `.env` file of the api must already be present before running the command above
+
+The following variables need to be set for the app to function properly:
+
+| Key          | Description                                                        | Default value (Docker) |
+| ------------ | ------------------------------------------------------------------ | ---------------------- |
+| NODE_ENV     | holds the environment type the server should run in                | production             |
+| ORIGIN       | holds the URL the application should listen on                     | http://localhost:4173  |
+| PORT         | holds the TCP port number the server listens on                    | 4173                   |
+| API_BASE_URL | holds the base url pointing to the api instance                    | _none_                 |
+| ACCESS_TOKEN | holds the JWT access token used for authentication against the api | _none_                 |
+
+**Endpoints:**
+
+- `GET /api/secret` - Proxy for the same endpoint provided by the api (request will be enriched with private access token)
+  - Authentication: _none_
+  - Sample request:
+    ```bash
+    curl --request GET \
+      --url http://localhost:5173/api/secret
+    ```
+  - Sample response: see [API > _Endoints_](#rest-api)
+
+**Routes:**
+
+- `/` - Displays the UI of the application
+  - Authentication: _none_
+
+**Tests:**
+
+The app's code is tested using unit tests on component level. However due to the very limited functionality which is located in
+the frontend their amount is very limited. In the case that project grows the testing infrastructure ([vitest](https://vitest.dev/)
+) can be built uppon and extended with additional tests.
+
+End-to-end (e2e) tests can be found in the _e2e_ directory. Here [Playwright](https://playwright.dev/) is used to test the actual
+site for multiple headless browsers. At the moment the backend does not get started for the e2e tests, therefore they serve more as
+simple integration tests.
+
+In order to run the tests locally, use the following commands:
+
+```bash
+task test # both unit & e2e
+task test:unit # unit tests only
+task test:e2e # e2e tests only
+```
+
+> Before you execute e2e tests for the first time, make sure to run this command:
+> ```bash
+> pnpm dlx playwright install
+> ```
 
 ## Pipelines
 
