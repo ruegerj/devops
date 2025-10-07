@@ -8,13 +8,20 @@
 </script>
 
 <svelte:head>
-	<title>Universe Vault</title>
+	<title>Secret Vault</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<main>
-	<ThemeToggleBtn />
-	{@render children?.()}
-</main>
+<div class="flex h-full flex-col overflow-hidden">
+	<nav class="flex h-16 items-center px-4">
+		<div class="ml-auto flex items-center space-x-4">
+			<ThemeToggleBtn />
+		</div>
+	</nav>
+
+	<main class="flex-auto overflow-hidden p-4">
+		{@render children?.()}
+	</main>
+</div>
 
 <ModeWatcher />
