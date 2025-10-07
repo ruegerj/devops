@@ -24,6 +24,7 @@ VMs:
   - [Web Frontend](#web-frontend)
 - [Pipelines](#pipelines)
   - [Continous Integration - API](#continous-integration---api)
+  - [Continous Integration - Web](#continous-integration---web)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
 
@@ -267,12 +268,43 @@ flowchart LR
     build --> test_e2e
 ```
 
-The pipeline runs for every _push_ and _pull request_ targeting the `main` branch. It features the following steps:
+The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `api`
+directory. It features the following steps:
 
 - **build** - Builds the entire codebase in order to find any compilation errors.
 - **lint** - Statically checks the codebase for potential quality flaws using [golangci-lint](https://golangci-lint.run/)
 - **unit test** - runs all unit tests
 - **e2e test** - runs all e2e tests against a testcontainer instance of the app (see _Tests_ section of [API](#rest-api))
+
+### Continous Integration - Web
+
+```mermaid
+---
+title: CI Web
+---
+flowchart LR
+    trigger_push[/push 'main'/]
+    trigger_pr[/PR -> 'main'/]
+    build(build)
+    lint(lint)
+    test_unit(unit test)
+    test_e2e(e2e test)
+
+    trigger_push --> build
+    trigger_pr --> build
+    build --> lint
+    build --> test_unit
+    build --> test_e2e
+```
+
+The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `web`
+directory. It features the following steps:
+
+- **build** - Builds the entire codebase in order to find any compilation errors.
+- **lint** - Statically checks the codebase for potential quality flaws using [eslint](https://golangci-lint.run/) & SvelteKit
+linter. Additionaly it checks the format of every file using [prettier](https://prettier.io/).
+- **unit test** - runs all unit tests using [vitest](https://vitest.dev)
+- **e2e test** - runs all e2e tests using [Playwright](https://playwright.dev/) (see _Tests_ section of [Web](#web-frontent))
 
 ## Miscellaneous
 
