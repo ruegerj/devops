@@ -4,6 +4,7 @@
 	import { toast } from 'svelte-sonner';
 	import IconUnlockKeyhole from 'virtual:icons/lucide/unlock-keyhole';
 	import IconLockKeyhole from 'virtual:icons/lucide/lock-keyhole';
+	import { CodeJar } from '$lib/components/custom';
 
 	let secretContent = $state('');
 
@@ -36,7 +37,7 @@
 				<p class="text-gray-500">Open it up to see its contents...</p>
 			{:else}
 				<div>
-					<pre>{secretContent}</pre>
+					<CodeJar class="bg-card" code={secretContent} enabled={false} />
 				</div>
 			{/if}
 		</Card.Content>

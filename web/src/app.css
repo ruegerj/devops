@@ -1,5 +1,6 @@
-@import 'tailwindcss';
+@import url('./styles/prism.catppucin.css');
 
+@import 'tailwindcss';
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
@@ -37,6 +38,25 @@
 	--sidebar-accent-foreground: oklch(0.208 0.042 265.755);
 	--sidebar-border: oklch(0.929 0.013 255.508);
 	--sidebar-ring: oklch(0.704 0.04 256.788);
+
+	/* Prism Catppuccin Latte */
+	--prism-base-color: #4c4f69;
+	--prism-token-keyword: #8839ef;
+	--prism-token-builtin: #d20f39;
+	--prism-token-function: #1e66f5;
+	--prism-token-bool-num: #fe640b;
+	--prism-token-string: #40a02b;
+	--prism-token-symbol: #df8e1d;
+	--prism-token-url: #40a02b;
+	--prism-token-operator: #04a5e5;
+	--prism-token-var: #4c4f69;
+	--prism-token-const: #fe640b;
+	--prism-token-property: #1e66f5;
+	--prism-token-punctuation: #7c7f93;
+	--prism-token-important: #8839ef;
+	--prism-token-tag: #1e66f5;
+	--prism-token-deleted: #d20f39;
+	--prism-token-inserted: #40a02b;
 }
 
 .dark {
@@ -71,6 +91,25 @@
 	--sidebar-accent-foreground: oklch(0.984 0.003 247.858);
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.551 0.027 264.364);
+
+	/* Prism Catppuccin Mocca */
+	--prism-base-color: #cdd6f4;
+	--prism-token-keyword: #cba6f7;
+	--prism-token-builtin: #f38ba8;
+	--prism-token-function: #89b4fa;
+	--prism-token-bool-num: #fab387;
+	--prism-token-string: #a6e3a1;
+	--prism-token-symbol: #f9e2af;
+	--prism-token-url: #a6e3a1;
+	--prism-token-operator: #89dceb;
+	--prism-token-var: #cdd6f4;
+	--prism-token-const: #fab387;
+	--prism-token-property: #89b4fa;
+	--prism-token-punctuation: #9399b2;
+	--prism-token-important: #cba6f7;
+	--prism-token-tag: #89b4fa;
+	--prism-token-deleted: #f38ba8;
+	--prism-token-inserted: #a6e3a1;
 }
 
 @theme inline {

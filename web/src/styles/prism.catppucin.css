@@ -1,0 +1,94 @@
+/*
+    Copyright © 2021-present Catppuccin Org (https://github.com/catppuccin)
+    Original themes: https://github.com/catppuccin/prismjs ("Latte" & "Mocca")
+*/
+
+code[class*='language-'],
+pre[class*='language-'] {
+	color: var(--prism-base-color);
+}
+
+:not(pre) > code[class*='language-'],
+pre[class*='language-'] {
+	background: var(--background);
+}
+
+/* https://prismjs.com/tokens.html */
+
+.token.keyword {
+	color: var(--prism-token-keyword);
+}
+
+.token.builtin {
+	color: var(--prism-token-builtin);
+}
+
+.token.function {
+	color: var(--prism-token-function);
+}
+
+.token.boolean,
+.token.number {
+	color: var(--prism-token-bool-num);
+}
+
+.token.string,
+.token.char {
+	color: var(--prism-token-string);
+}
+
+.token.symbol {
+	color: var(--prism-token-symbol);
+}
+
+.token.url {
+	color: var(--prism-token-url);
+}
+
+.token.operator {
+	color: var(--prism-token-operator);
+}
+
+.token.variable {
+	color: var(--prism-token-var);
+}
+
+.token.constant {
+	color: var(--prism-token-const);
+}
+
+.token.property {
+	color: var(--prism-token-property);
+}
+
+.token.punctuation {
+	color: var(--prism-token-punctuation);
+}
+
+.token.important {
+	color: var(--prism-token-important);
+}
+
+.token.tag {
+	color: var(--prism-token-tag);
+}
+
+/* Diff */
+
+.token.deleted {
+	color: var(--prism-token-deleted);
+}
+
+.token.inserted {
+	color: var(--prism-token-inserted);
+}
+
+/* Other */
+
+.token.important,
+.token.bold {
+	font-weight: bold;
+}
+.token.italic {
+	font-style: italic;
+}
