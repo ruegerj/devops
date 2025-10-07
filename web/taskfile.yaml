@@ -1,0 +1,51 @@
+version: '3'
+
+tasks:
+  run:
+    desc: Launches the app in development configuration
+    cmds:
+      - pnpm run dev
+
+  build:
+    desc: Builds the application for production
+    cmds:
+      - pnpm run build
+
+  check:
+    desc: Lints the application with Svelte specific rules
+    cmds:
+      - pnpm run check
+
+  format:
+    desc: Formats the codebase using prettier
+    cmds:
+      - pnpm run format
+
+  lint:
+    desc: Lints the codebase for code smells & format issues
+    cmds:
+      - pnpm run lint
+
+  test:
+    desc: Runs all tests of the project
+    cmds:
+      - task: test:unit
+      - task: test:e2e
+
+  test:unit:
+    desc: Runs only the unit tests of the project
+    cmds:
+      - pnpm run test:unit
+
+  test:e2e:
+    desc: Runs only the e2e tests of the project
+    cmds:
+      - pnpm run test:e2e
+
+  generate:env:
+    desc: Generates a .env file holding all relevant options for a local workspace
+    cmds:
+      - touch .env
+      - truncate -s 0 .env
+      - echo "API_BASE_URL=http://localhost:3000" >> .env
+      - echo "ACCESS_TOKEN=$(task -d ../api generate:jwt)" >> .env

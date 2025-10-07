@@ -4,3 +4,6 @@ includes:
   api:
     taskfile: ./api/taskfile.yaml
     dir: ./api
+  web:
+    taskfile: ./web/taskfile.yaml
+    dir: ./web
