@@ -2,11 +2,12 @@ name: CI API
 on:
   push:
     branches: [main]
-    paths: [api/**, .github/**]
+    paths: [api/**]
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths: [api/**, .github/**]
+  workflow_dispatch:
 
 jobs:
   build:

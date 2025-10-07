@@ -2,11 +2,12 @@ name: CI Web
 on:
   push:
     branches: [main]
-    paths: [web/**, .github/**]
+    paths: [web/**]
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths: [web/**, .github/**]
+  workflow_dispatch:
 
 jobs:
   build:
