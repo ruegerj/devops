@@ -229,8 +229,8 @@ the frontend their amount is very limited. In the case that project grows the te
 ) can be built uppon and extended with additional tests.
 
 End-to-end (e2e) tests can be found in the _e2e_ directory. Here [Playwright](https://playwright.dev/) is used to test the actual
-site for multiple headless browsers. At the moment the backend does not get started for the e2e tests, therefore they serve more as
-simple integration tests.
+site for multiple headless browsers. In order to test all functionality, a complete api instance gets spun up using a
+[testcontainer](https://testcontainers.com/).
 
 In order to run the tests locally, use the following commands:
 

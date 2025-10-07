@@ -29,27 +29,30 @@
 	<div class="w-full md:w-3xl lg:w-3xl xl:w-2xl">
 		<Card.Root>
 			<Card.Header class="flex justify-center">
-				<Card.Title class=" text-4xl font-extrabold tracking-tight text-balance">
+				<Card.Title
+					class=" text-4xl font-extrabold tracking-tight text-balance"
+					data-test="card-title"
+				>
 					Secret Vault
 				</Card.Title>
 			</Card.Header>
 			<Card.Content class="flex justify-center">
 				{#if !secretContent}
-					<p class="text-gray-500">Open it up to see its contents...</p>
+					<p class="text-gray-500" data-test="locked-info">Open it up to see its contents...</p>
 				{:else}
-					<div>
+					<div data-test="code-container">
 						<CodeJar class="bg-card" code={secretContent} enabled={false} />
 					</div>
 				{/if}
 			</Card.Content>
 			<Card.Footer class="flex justify-center">
 				{#if !secretContent}
-					<Button class="cursor-pointer" onclick={fetchSecret}>
+					<Button class="cursor-pointer" onclick={fetchSecret} data-test="unlock-btn">
 						<IconUnlockKeyhole />
 						Open
 					</Button>
 				{:else}
-					<Button class="cursor-pointer" onclick={reloadPage}>
+					<Button class="cursor-pointer" onclick={reloadPage} data-test="lock-btn">
 						<IconLockKeyhole />
 						Lock
 					</Button>
