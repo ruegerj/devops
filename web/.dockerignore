@@ -1,0 +1,11 @@
+.svelte-kit/
+node_modules/
+build/
+e2e/
+test-results/
+
+.prettier*
+.npmrc
+.env
+eslint.config.js
+README.md
