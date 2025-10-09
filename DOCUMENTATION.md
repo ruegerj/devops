@@ -9,6 +9,7 @@ Members:
 
 VMs:
 
+* devops-bastion (83.228.209.199)
 * srv-001.devops.ls.eee.intern
 * srv-019.devops.ls.eee.intern
 * srv-022.devops.ls.eee.intern
@@ -56,7 +57,7 @@ Dummy app that displays some information fetched from a private REST api.
 - [ ] K8S or K3S Hosting
 - [ ] ArgoCD for Deployments
 - [ ] Credential Vault (Hashicorp Vault?)
-- [ ] SSH Reverse Tunnel
+- [X] SSH Reverse Tunnel
 - [ ] Configuration as Code (TerraForm + Ansible?) -> Desaster Recovery
 
 **Extensions**
@@ -306,6 +307,19 @@ linter. Additionaly it checks the format of every file using [prettier](https://
 - **unit test** - runs all unit tests using [vitest](https://vitest.dev)
 - **e2e test** - runs all e2e tests using [Playwright](https://playwright.dev/) (see _Tests_ section of [Web](#web-frontent))
 
+## Infrastructure
+
+### Network Access for Github Actions
+On order to allow access to the Enterprise Lab VMs from the GitHub Action pipelines without the need of Pulse Secure VPN, a SSH reverse tunnel from `srv-001-devops.ls.eee.intern` to a bastion host (`devops-bastion` - 83.228.209.199) located at a public cloud provider was estabilished.
+
+```mermaid
+---
+title: SSH Reverse-Tunnel
+---
+sequenceDiagram
+    Github Actions Runner->devops-bastion: ssh -i id_devops -p 3333 labadmin@devops-bastion
+    srv-001-devops.ls.eee.intern->devops-bastion: ssh -R 3333:localhost:22 debian@devops-bastion -i id_devops-bastion
+```
 ## Miscellaneous
 
 ### GitLab Docs Sync
