@@ -1,0 +1,66 @@
+name: Release API
+on:
+  push:
+    tags:
+      - 'v*.*.*'   # Release Tags wie v1.2.3
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-api.yaml
+  lint:
+    uses: ./.github/workflows/lint-api.yaml
+    needs: [ build ]
+  test:
+    uses: ./.github/workflows/test-api.yaml
+    needs: [ build ]
+  docker:
+    name: Build and Push Docker Image (Backend)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+
+      - name: Generate JWT Token
+        id: genjwt
+        working-directory: ./api
+        env:
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+        run: |
+          ACCESS_TOKEN=$(task generate:jwt)
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+      - name: "[Frontend] Build and push Docker image"
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: true
+          build-args: |
+            ACCESS_TOKEN=${{ env.ACCESS_TOKEN }}
+            API_BASE_URL=${{ vars.API_BASE_URL }}
+          tags: |
+            ghcr.io/${{ github.repository }}/web:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/web:latest
+
+      - name: "[Backend] Build and push Docker image"
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          file: ./api/Dockerfile
+          push: true
+          build-args: |
+            JWT_KEY=${{ secrets.JWT_KEY }}
+          tags: |
+            ghcr.io/${{ github.repository }}/api:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/api:latest
