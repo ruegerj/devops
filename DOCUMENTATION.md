@@ -115,11 +115,11 @@ Note: JWT_KEY is defined as a github secret.
 
 You can run the containers with the following commands after loggin into ghcr.io with username and token:
 ```bash
-docker pull ghcr.io/scholtyl/testrepo/api:latest
-docker pull ghcr.io/scholtyl/testrepo/web:latest
+docker pull ghcr.io/ruegerj/devops/api:latest
+docker pull ghcr.io/ruegerj/devops/web:latest
 
-docker run -d --name frontend -e API_BASE_URL=http://host.docker.internal:3000 -p 4173:4173 ghcr.io/scholtyl/testrepo/web:latest
-docker run -d --name backend -p 3000:3000 ghcr.io/scholtyl/testrepo/api:latest
+docker run -d --name frontend -e API_BASE_URL=http://host.docker.internal:3000 -p 4173:4173 ghcr.io/ruegerj/devops/web:latest
+docker run -d --name backend -p 3000:3000 ghcr.io/ruegerj/devops/api:latest
 ```
 
 ## Applications
