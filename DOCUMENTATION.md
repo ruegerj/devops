@@ -49,9 +49,9 @@ Dummy app that displays some information fetched from a private REST api.
     - [ ] Static Code Analysis (Snyk?)
 
 - [ ] CD Pipeline (Github Actions)
-    - [ ] Build
-    - [ ] Docker Image Build
-    - [ ] Image Push (GitHub Container Registry)
+    - [X] Build
+    - [X] Docker Image Build
+    - [X] Image Push (GitHub Container Registry)
     - [ ] (ArgoCD Sync)
 
 - [ ] K8S or K3S Hosting
@@ -97,6 +97,30 @@ task run
 ```
 
 > All commands are written with unix systems in mind (Linux & Mac). If you are on Windows - try using a WSL instance if you are facing issues.
+### Docker Containers
+
+The release pipeline will build, tag and push two docker images to the GitHub Container Registry. One for the Backend and one for the frontend.   
+During the build process the JWT_KEY and matching ACCESS_TOKEN are injected as build arguments into the respective docker images.
+
+Note: JWT_KEY is defined as a github secret.
+
+**Running the containers**   
+- Backend  
+  - Forward port 3000 to the host system.
+- Frontend
+  - Forward port 4173 to the host system.
+  - Set API_BASE_URL to the backend URL (http://host.docker.internal:3000)
+  - Note: http://localhost:3000 does not work as with this the container uses its INTERNAL localhost
+
+
+You can run the containers with the following commands after loggin into ghcr.io with username and token:
+```bash
+docker pull ghcr.io/scholtyl/testrepo/api:latest
+docker pull ghcr.io/scholtyl/testrepo/web:latest
+
+docker run -d --name frontend -e API_BASE_URL=http://host.docker.internal:3000 -p 4173:4173 ghcr.io/scholtyl/testrepo/web:latest
+docker run -d --name backend -p 3000:3000 ghcr.io/scholtyl/testrepo/api:latest
+```
 
 ## Applications
 
