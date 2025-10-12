@@ -12,4 +12,6 @@ EXPOSE 3000
 CMD [ "./api" ]
 ENV HOST=0.0.0.0
 ENV PORT=3000
+ARG JWT_KEY
+ENV JWT_KEY=${JWT_KEY}
 COPY --from=builder /app/bin/api .
