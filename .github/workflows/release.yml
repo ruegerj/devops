@@ -6,14 +6,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-api:
     uses: ./.github/workflows/build-api.yaml
-  lint:
+  build-web:
+    uses: ./.github/workflows/build-web.yaml
+  lint-api:
     uses: ./.github/workflows/lint-api.yaml
-    needs: [ build ]
-  test:
+    needs: [ build-api ]
+  lint-web:
+    uses: ./.github/workflows/lint-web.yaml
+    needs: [ build-web ]
+  test-api:
     uses: ./.github/workflows/test-api.yaml
-    needs: [ build ]
+    needs: [ build-api ]
+  test-web:
+    uses: ./.github/workflows/test-api.yaml
+    needs: [ build-web ]
   docker:
     name: Build and Push Docker Image (Backend)
     runs-on: ubuntu-latest
