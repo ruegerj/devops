@@ -1,0 +1,4 @@
+- hosts: all
+
+- name: Install K3s
+  ansible.builtin.import_playbook: k3s.orchestration.site
