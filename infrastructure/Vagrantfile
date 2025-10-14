@@ -1,0 +1,36 @@
+VAGRANT_DEFAULT_PROVIDER = "libvirt"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/debian12"
+
+  #add created local keys into authorized_keys
+  config.vm.provision "file", source: "./id_vagrant.pub", destination: "~/.ssh/id_vagrant.pub"
+  config.vm.provision "shell", inline: <<-SHELL
+    cat /home/vagrant/.ssh/id_vagrant.pub >> /home/vagrant/.ssh/authorized_keys
+  SHELL
+
+  # vagrant tries to mount . into /vagrant by default, this is known to cause some issues, when using libvirt 
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provision "shell", inline: <<-SHELL
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -y
+    apt-get -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold" \
+    -y upgrade
+  SHELL
+
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.memory = 2048
+    libvirt.cpus = 2
+    libvirt.qemu_use_agent = true
+  end
+
+  N = 3 # Number of nodes to deploy
+  (1..N).each do |id|
+    config.vm.define "dev-#{id}" do |machine|
+      machine.vm.hostname = "dev-#{id}"
+      machine.vm.network "private_network", ip: "192.168.122.#{10+id}"
+    end
+  end
+end 

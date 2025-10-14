@@ -1,20 +1,22 @@
 ---
-# WARN! THIS IS THE PROD INVENTORY! - Dev inventory used for playbook testing can be found in inventory.dev.yml
+# WARN! THIS IS THE DEV INVENTORY USED FOR PLAYBOOK TESTING! - Prod inventory can be found in inventory.yml
 k3s_cluster:
   children:
     server:
       hosts:
-        srv-019.devops.ls.eee.intern:
-        srv-022.devops.ls.eee.intern:
-        srv-023.devops.ls.eee.intern:
+        192.168.122.11: # IPs as deployed by Vagrant
+        192.168.122.12:
+        192.168.122.13:
     agent:
       hosts:
 
   # Required Vars
   vars:
     ansible_port: 22
-    ansible_user: labadmin
-    ansible_ssh_private_key_file: /home/labadmin/.ssh/id_jump
+    ansible_user: vagrant
+    ansible_become_pass: vagrant
+    ansible_ssh_private_key_file: ./id_vagrant
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' # living on the edge :D, pls don't do in prod
     k3s_version: v1.31.12+k3s1
     # The token should be a random string of reasonable length. You can generate
     # one with the following commands:
@@ -22,7 +24,7 @@ k3s_cluster:
     # - pwgen -s 64 1
     # You can use ansible-vault to encrypt this value / keep it secret.
     # Or you can omit it if not using Vagrant and let the first server automatically generate one.
-    token: "CHANGE_ME!"
+    token: "nh2wZ6nCxCvu69drWvqBw6gjBc1GpW0yZy8PTyWeKxN/+35/4y3Su0K5L7b3PehLnWoawlmkXwF2zHkCQPwXtw=="
     api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
 
     # Optional vars
