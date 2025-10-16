@@ -20,12 +20,15 @@ VMs:
 - [Project Idea & Tools](#project-idead--tools)
 - [Prerequisites & Setup](#prerequisites--setup)
   - [Local Workspace](#local-workspace)
+  - [Git Workflow](#git-workflow)
+  - [Docker Containers](#docker-containers)
 - [Applications](#applications)
   - [REST API](#rest-api)
   - [Web Frontend](#web-frontend)
 - [Pipelines](#pipelines)
   - [Continous Integration - API](#continous-integration---api)
   - [Continous Integration - Web](#continous-integration---web)
+  - [Continous Deployment](#continous-deployment)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
 
@@ -42,15 +45,16 @@ Dummy app that displays some information fetched from a private REST api.
 
 **DevOps Features**
 
-- [ ] CI Pipeline (GitHub Actions)
+- [X] CI Pipeline (GitHub Actions)
     - [X] Build
     - [X] Lint
     - [X] Test
-    - [ ] Static Code Analysis (Snyk?)
+    - [X] Static Vulnerability Analysis (Snyk)
 
 - [ ] CD Pipeline (Github Actions)
     - [X] Build
     - [X] Docker Image Build
+    - [X] Image Scan (Snyk)
     - [X] Image Push (GitHub Container Registry)
     - [ ] (ArgoCD Sync)
 
@@ -109,7 +113,12 @@ The workflow should be pragmatic and enable productivity, however the following 
 
 ### Docker Containers
 
-The release pipeline will build, tag and push two docker images to the GitHub Container Registry. One for the Backend and one for the frontend.
+The release pipeline will build, tag and push two docker images to the GitHub Container Registry. One for the api and one for
+the web frontend:
+
+- [api:latest](https://github.com/ruegerj/devops/pkgs/container/devops%2Fapi)
+- [web:latest](https://github.com/ruegerj/devops/pkgs/container/devops%2Fweb)
+
 During the build process the JWT_KEY and matching ACCESS_TOKEN are injected as build arguments into the respective docker images.
 
 Note: JWT_KEY is defined as a github secret.
@@ -295,12 +304,16 @@ flowchart LR
     lint(lint)
     test_unit(unit test)
     test_e2e(e2e test)
+    scan(scan)
 
     trigger_push --> build
     trigger_pr --> build
     build --> lint
     build --> test_unit
     build --> test_e2e
+    lint --> scan
+    test_unit --> scan
+    test_e2e --> scan
 ```
 
 The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `api`
@@ -310,6 +323,8 @@ directory. It features the following steps:
 - **lint** - Statically checks the codebase for potential quality flaws using [golangci-lint](https://golangci-lint.run/)
 - **unit test** - runs all unit tests
 - **e2e test** - runs all e2e tests against a testcontainer instance of the app (see _Tests_ section of [API](#rest-api))
+- **scan** - runs static vulnerability scans using [Snyk](https://snyk.io/)
+  -> results are uploaded as [GitHub code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts)
 
 ### Continous Integration - Web
 
@@ -324,12 +339,16 @@ flowchart LR
     lint(lint)
     test_unit(unit test)
     test_e2e(e2e test)
+    scan(scan)
 
     trigger_push --> build
     trigger_pr --> build
     build --> lint
     build --> test_unit
     build --> test_e2e
+    lint --> scan
+    test_unit --> scan
+    test_e2e --> scan
 ```
 
 The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `web`
@@ -340,6 +359,82 @@ directory. It features the following steps:
 linter. Additionaly it checks the format of every file using [prettier](https://prettier.io/).
 - **unit test** - runs all unit tests using [vitest](https://vitest.dev)
 - **e2e test** - runs all e2e tests using [Playwright](https://playwright.dev/) (see _Tests_ section of [Web](#web-frontent))
+- **scan** - runs static vulnerability scans using [Snyk](https://snyk.io/)
+  -> results are uploaded as [GitHub code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts)
+
+
+### Continous Deployment
+
+```mermaid
+---
+title: CD
+---
+flowchart TD
+    trigger_tag[/tag 'x.x.x'/]
+    trigger_manual[/manual/]
+    build_api(build api)
+    build_web(build web)
+    lint_api(lint api)
+    lint_web(lint web)
+    test_unit_api(unit test api)
+    test_e2e_api(e2e test api)
+    test_unit_web(unit test web)
+    test_e2e_web(e2e test web)
+    scan_code_api(scan code api)
+    scan_code_web(scan code web)
+
+    trigger_tag --> build_api
+    trigger_tag --> build_web
+    trigger_manual --> build_api
+    trigger_manual --> build_web
+    build_api --> lint_api
+    build_api --> test_unit_api
+    build_api --> test_e2e_api
+    build_web --> lint_web
+    build_web --> test_unit_web
+    build_web --> test_e2e_web
+    lint_api --> scan_code_api
+    test_unit_api --> scan_code_api
+    test_e2e_api --> scan_code_api
+    lint_web --> scan_code_web
+    test_unit_web --> scan_code_web
+    test_e2e_web --> scan_code_web
+    scan_code_api --> docker_build_api
+    scan_code_web --> docker_build_api
+
+    subgraph docker_build_scan_push [ Build, Scan & Push Images]
+        direction LR
+
+        docker_build_api(docker build api)
+        docker_build_web(docker build web)
+        image_scan_api(scan image api)
+        image_scan_web(scan image web)
+        image_push_api(push image api)
+        image_push_web(push image web)
+
+        docker_build_api --> image_scan_api
+        image_scan_api --> docker_build_web
+        docker_build_web --> image_scan_web
+        image_scan_web --> image_push_api
+        image_push_api --> image_push_web
+    end
+```
+
+The pipeline runs for every created tag (`x.x.x`). It runs all steps from the CI-piplines of both applications (see corresponding
+chapters for more details) in parallel in  order to ensure the codebase is in a sane state. Afterwards the following steps are
+executed to create, scan & deploy the Docker images for the new release:
+
+- **docker build api** - builds the Docker image for the api backend
+  -> secrets are injected into the image using build args
+- **scan image api** - scans the freshly built api image using [Snyk](https://snyk.io)
+- **docker build web** - builds the Docker image for the web frontend
+  -> secrets are injected into the image using build args
+- **scan image web** - scans the freshly built web image using [Snyk](https://snyk.io)
+- **push image api** - pushes the api image to the [GitHub container registry](https://github.com/ruegerj/devops/pkgs/container/devops%2Fapi)
+  -> the image is taged with the version from the git tag & `latest`
+- **push image web** - pushes the web image to the [GitHub container registry](https://github.com/ruegerj/devops/pkgs/container/devops%2Fapi)
+  -> the image is taged with the version from the git tag & `latest`
+
 
 ## Infrastructure
 
