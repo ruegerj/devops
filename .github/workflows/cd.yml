@@ -82,7 +82,7 @@ jobs:
         with:
           context: ./web
           file: ./web/Dockerfile
-          load: true
+          load: true # load image into actions docker context for later use in pipeline
           build-args: |
             ACCESS_TOKEN=${{ env.ACCESS_TOKEN }}
             API_BASE_URL=${{ vars.API_BASE_URL }}
