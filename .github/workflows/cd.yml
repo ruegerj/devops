@@ -76,6 +76,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.RC_TAG_API }}
+          command: container test
 
       - name: "Build Docker Image (Web)"
         uses: docker/build-push-action@v6
@@ -94,6 +95,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: ${{ env.RC_TAG_WEB }}
+          command: container test
 
       # action does not rebuild the image - cache from the previous build step is used
       - name: "Push Image (API)"

@@ -10,6 +10,9 @@ jobs:
     permissions:
       actions: read
       contents: read
+    defaults:
+      run:
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
       - name: Snyk Go Scan
@@ -17,16 +20,17 @@ jobs:
         id: snyk
         continue-on-error: true # allow to continue with report upload
         env:
-          SNYK_TOKEN: ${{ SNYK_TOKEN }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --sarif-file-output=snyk-api.sarif
+          args: --sarif-file-output=snyk-api.sarif ./api
+          command: code test
 
       - name: Upload report
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif-file: snyk-api.sarif
+          sarif_file: snyk-api.sarif
 
-      - name: Vulnerability Check
+      - name: Analyze report
         if: steps.snyk.outcome == 'failure'
         run: |
           echo "❌ Snyk found vulnerabilities."
