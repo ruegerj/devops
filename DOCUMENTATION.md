@@ -371,6 +371,7 @@ title: CD
 ---
 flowchart TD
     trigger_tag[/tag 'x.x.x'/]
+    trigger_manual[/manual/]
     build_api(build api)
     build_web(build web)
     lint_api(lint api)
@@ -384,6 +385,8 @@ flowchart TD
 
     trigger_tag --> build_api
     trigger_tag --> build_web
+    trigger_manual --> build_api
+    trigger_manual --> build_web
     build_api --> lint_api
     build_api --> test_unit_api
     build_api --> test_e2e_api
