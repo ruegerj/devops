@@ -97,15 +97,25 @@ task run
 ```
 
 > All commands are written with unix systems in mind (Linux & Mac). If you are on Windows - try using a WSL instance if you are facing issues.
+
+### Git workflow
+
+The workflow should be pragmatic and enable productivity, however the following guardrails apply:
+
+- every meaningful change should be done in a dedicated feature branch
+- every feature branch should be either _squash-merged_ or _rebased_ back onto `main`
+- every meaningful change should be peer-review via pull-request
+- CI should be passing before a change gets onto `main`
+
 ### Docker Containers
 
-The release pipeline will build, tag and push two docker images to the GitHub Container Registry. One for the Backend and one for the frontend.   
+The release pipeline will build, tag and push two docker images to the GitHub Container Registry. One for the Backend and one for the frontend.
 During the build process the JWT_KEY and matching ACCESS_TOKEN are injected as build arguments into the respective docker images.
 
 Note: JWT_KEY is defined as a github secret.
 
-**Running the containers**   
-- Backend  
+**Running the containers**
+- Backend
   - Forward port 3000 to the host system.
 - Frontend
   - Forward port 4173 to the host system.
