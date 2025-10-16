@@ -4,25 +4,22 @@ on:
   workflow_dispatch: # allow manual executions if demand should arise
 
 jobs:
-  snyk-scan:
-    name: Snyk
+  snyk-code-scan:
+    name: Snyk Code
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v4
-      - name: Snyk Node Scan
+      - name: Snyk Code Scan
         uses: snyk/actions/node@master
         id: snyk
         continue-on-error: true # allow to continue with report upload
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --sarif-file-output=snyk-web.sarif ./web
+          args: --policy-path=web/.snyk --sarif-file-output=snyk-web.sarif ./web
           command: code test
 
       - name: Upload report
@@ -34,4 +31,33 @@ jobs:
         if: steps.snyk.outcome == 'failure'
         run: |
           echo "❌ Snyk found vulnerabilities."
+          exit 1
+
+  snyk-dependency-scan:
+    name: Snyk Dependency
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Snyk Dependency Scan
+        uses: snyk/actions/node@master
+        id: snyk
+        continue-on-error: true # allow to continue with report upload
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --policy-path=web/.snyk --sarif-file-output=snyk-web.sarif ./web
+          command: test
+
+      - name: Upload report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-web.sarif
+
+      - name: Analyze report
+        if: steps.snyk.outcome == 'failure'
+        run: |
+          echo "❌ Snyk found vulnerable dependencies."
           exit 1
