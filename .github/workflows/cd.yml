@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/test-api.yaml
     needs: [build-api]
   test-web:
-    uses: ./.github/workflows/test-api.yaml
+    uses: ./.github/workflows/test-web.yaml
     needs: [build-web]
   scan-api:
     uses: ./.github/workflows/scan-api.yaml
