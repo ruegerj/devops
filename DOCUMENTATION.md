@@ -42,11 +42,11 @@ Dummy app that displays some information fetched from a private REST api.
 
 **DevOps Features**
 
-- [ ] CI Pipeline (GitHub Actions)
+- [X] CI Pipeline (GitHub Actions)
     - [X] Build
     - [X] Lint
     - [X] Test
-    - [ ] Static Code Analysis (Snyk?)
+    - [X] Static Vulnerability Analysis (Snyk)
 
 - [ ] CD Pipeline (Github Actions)
     - [X] Build
@@ -295,12 +295,16 @@ flowchart LR
     lint(lint)
     test_unit(unit test)
     test_e2e(e2e test)
+    scan(scan)
 
     trigger_push --> build
     trigger_pr --> build
     build --> lint
     build --> test_unit
     build --> test_e2e
+    lint --> scan
+    test_unit --> scan
+    test_e2e --> scan
 ```
 
 The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `api`
@@ -310,6 +314,8 @@ directory. It features the following steps:
 - **lint** - Statically checks the codebase for potential quality flaws using [golangci-lint](https://golangci-lint.run/)
 - **unit test** - runs all unit tests
 - **e2e test** - runs all e2e tests against a testcontainer instance of the app (see _Tests_ section of [API](#rest-api))
+- **scan** - runs static vulnerability scans using [Snyk](https://snyk.io/)
+  -> results are uploaded as [GitHub code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts)
 
 ### Continous Integration - Web
 
@@ -324,12 +330,16 @@ flowchart LR
     lint(lint)
     test_unit(unit test)
     test_e2e(e2e test)
+    scan(scan)
 
     trigger_push --> build
     trigger_pr --> build
     build --> lint
     build --> test_unit
     build --> test_e2e
+    lint --> scan
+    test_unit --> scan
+    test_e2e --> scan
 ```
 
 The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `web`
@@ -340,6 +350,8 @@ directory. It features the following steps:
 linter. Additionaly it checks the format of every file using [prettier](https://prettier.io/).
 - **unit test** - runs all unit tests using [vitest](https://vitest.dev)
 - **e2e test** - runs all e2e tests using [Playwright](https://playwright.dev/) (see _Tests_ section of [Web](#web-frontent))
+- **scan** - runs static vulnerability scans using [Snyk](https://snyk.io/)
+  -> results are uploaded as [GitHub code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts)
 
 ## Infrastructure
 
