@@ -23,6 +23,6 @@ jobs:
     secrets: inherit
 
   scan:
-    uses: ./.github/workflows/scan-api.yaml
+    uses: ./.github/workflows/scan-web.yaml
     needs: [lint, test] # scans are expensive -> only run if state is sane
     secrets: inherit
