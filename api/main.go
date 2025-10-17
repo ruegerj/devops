@@ -24,8 +24,6 @@ func main() {
 	var app App
 	app.Initialize(jwtKey)
 
-	fmt.Println("hello world")
-
 	addr := fmt.Sprintf("%s:%s", host, port)
 	app.Run(addr)
 }
