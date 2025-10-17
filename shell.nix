@@ -11,6 +11,7 @@ pkgs.mkShell {
     act
 
     #infra
+    openssl
     ansible
     vagrant
   ];
