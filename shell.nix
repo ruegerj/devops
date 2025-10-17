@@ -7,6 +7,9 @@ pkgs.mkShell {
     golangci-lint
     go-task
 
+    #ci
+    act
+
     #infra
     ansible
     vagrant
