@@ -1,0 +1,24 @@
+name: Lint Ansible
+on:
+  push:
+    branches: [main]
+    paths: [infrastructure/ansible/**]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths: [infrastructure/ansible/**, .github/**]
+
+jobs:
+  build:
+    name: Ansible Lint 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v25.9.2 
+        # optional (see below):
+        with:
+          args: ""
+          setup_python: "true"
+          working_directory: "infrastructure/ansible/"
+          requirements_file: "requirements.yml"
