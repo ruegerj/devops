@@ -29,6 +29,10 @@ VMs:
   - [Continous Integration - API](#continous-integration---api)
   - [Continous Integration - Web](#continous-integration---web)
   - [Continous Deployment](#continous-deployment)
+- [Secure Development Lifecycle](#secure-development-lifecycle)
+  - [Dependency Scanning](#dependency-scanning)
+  - [Code Analysis](#code-analysis)
+  - [Container Scanning](#container-scanning)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
 
@@ -449,6 +453,39 @@ sequenceDiagram
     Github Actions Runner->devops-bastion: ssh -i id_devops -p 3333 labadmin@devops-bastion
     srv-001-devops.ls.eee.intern->devops-bastion: ssh -R 3333:localhost:22 debian@devops-bastion -i id_devops-bastion
 ```
+
+## Secure Development Lifecycle
+
+In order to create a complete _Secure Development Lifecyle (SDLC)_ the platform [Snyk](https://snyk.io) is used in combination with
+GitHub. Within GitHub all security findings of Snyk are pushed to the [Code Scanning](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts) platform.
+
+### Dependency Scanning
+
+Runs in CI-pipelines for [web](#continous-integration---web) & [api](#continous-integration---api)
+
+In order to scan for vulnerable dependencies [Snyk Open Source](https://snyk.io/product/open-source-security-management/) is used.
+It scans the the _pnpm-lock.yaml_ (for web) and the _go.mod_ (for api) for dependency version that have reported vulnerabilites. When vulnerable dependencies are found, the workflow fails in order to prevent them getting used for a release. To handle false
+positives or vulnerabilites that don't have to be fixed immediately - time based ignore rules can be configured using the [Snyk CLI](https://docs.snyk.io/developer-tools/snyk-cli/scan-and-maintain-projects-using-the-cli/ignore-vulnerabilities-using-the-snyk-cli).
+
+### Code Analysis
+
+Runs in CI-pipelines for [web](#continous-integration---web) & [api](#continous-integration---api)
+
+In order to statically analyse (SAST) the code for vulnerabilites [Snyk Code](https://snyk.io/product/snyk-code/) is used. To define
+app specific path exclusions (e.g. test files) a _.snyk_ file in the respective subfolder is used - either by hand or using the
+[Snyk CLI](https://docs.snyk.io/developer-tools/snyk-cli/scan-and-maintain-projects-using-the-cli/snyk-cli-for-snyk-code/exclude-directories-and-files-from-snyk-code-cli-tests).
+Due to the semantic code analysis of Snyk findings cannot simply be ignored using a specific comment. When faced with false
+positives use the [web-app](https://app.snyk.io) to ignore them properly.
+
+### Container Scanning
+
+Runs in [CD-pipeline](#continous-integration)
+
+In order to scan the docker images for vulnerabilites [Snyk Container](https://snyk.io/product/container-vulnerability-management/)
+is used. It scans the freshly built docker images for _web_ & _api_ as well as the base-images (e.g. the respective _Dockerfile_). The scan results are not pushed to GitHub, however the pipeline is failed in order to prevent potentially vulnerable images going
+being released.
+
+
 ## Miscellaneous
 
 ### GitLab Docs Sync
