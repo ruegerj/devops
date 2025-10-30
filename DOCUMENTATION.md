@@ -90,6 +90,7 @@ Recommended but not mandatory:
 
 - [act](https://github.com/nektos/act)
 - [openssl](https://openssl-library.org/) (if you want to generate JWTs by hand)
+- [gocovmerge](https://pkg.go.dev/github.com/wadey/gocovmerge) (if you want to generate api test coverage reports)
 
 For starting the application locally, testing, linting, or any other automations [Task](taskfile.dev) is used as a modern cross-platform Make
 alternative. You can run task cmd's either in the repository root or in the dedicated subdirectories of the applications:

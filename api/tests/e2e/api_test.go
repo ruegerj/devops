@@ -7,12 +7,15 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/docker/docker/api/types/container"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/stretchr/testify/assert"
@@ -31,15 +34,35 @@ var (
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 	jwtSigningKey := "v3ryS3cure!"
+	coverageFlag := "true"
+
+	workingDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Failed to obtain working dir:", err)
+		os.Exit(1)
+	}
+
+	workingDir = path.Join(workingDir, "..", "..")
+	coverageDir := path.Join(workingDir, "bin", "coverage")
+	if err := os.MkdirAll(coverageDir, 0o755); err != nil {
+		log.Fatalf("Failed to create coverage dir: %v", err)
+	}
 
 	// build & start container from dockerfile
 	req := tc.ContainerRequest{
 		FromDockerfile: tc.FromDockerfile{
-			Context: "../../",
+			Context:   "../../",
+			BuildArgs: map[string]*string{"WITH_COVERAGE": &coverageFlag},
 		},
 		ExposedPorts: []string{"3000/tcp"},
 		Env: map[string]string{
-			"JWT_KEY": jwtSigningKey,
+			"JWT_KEY":    jwtSigningKey,
+			"GOCOVERDIR": "/app/coverage",
+		},
+		HostConfigModifier: func(hc *container.HostConfig) {
+			hc.Binds = []string{
+				fmt.Sprintf("%s:/app/coverage", coverageDir),
+			}
 		},
 		WaitingFor: wait.ForHTTP("/health").
 			WithStartupTimeout(30 * time.Second),
@@ -69,9 +92,10 @@ func TestMain(m *testing.M) {
 	// run test suite
 	code := m.Run()
 
-	// teardown container
-	if err := apiContainer.Terminate(ctx); err != nil {
-		fmt.Println("Failed to terminate container:", err)
+	// teardown container gracefully -> allow dumpting of coverage data
+	gracePeriod := 1 * time.Second
+	if err = apiContainer.Terminate(ctx, tc.StopTimeout(gracePeriod)); err != nil {
+		fmt.Println("Failed to stop container:", err)
 	}
 
 	os.Exit(code)

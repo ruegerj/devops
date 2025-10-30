@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -21,9 +24,18 @@ func main() {
 		log.Panic(err)
 	}
 
-	var app App
-	app.Initialize(jwtKey)
+	go func() {
+		var app App
+		app.Initialize(jwtKey)
 
-	addr := fmt.Sprintf("%s:%s", host, port)
-	app.Run(addr)
+		addr := fmt.Sprintf("%s:%s", host, port)
+		app.Run(addr)
+	}()
+
+	// await termination signal
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+	log.Println("Shutting down...")
+
 }
