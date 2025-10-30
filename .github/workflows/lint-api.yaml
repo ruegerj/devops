@@ -31,6 +31,7 @@ jobs:
         with:
           go-version: ${{ vars.GO_VERSION }}
       - uses: arduino/setup-task@v2
+      - run: go install github.com/wadey/gocovmerge@latest
       - name: Create coverage reports
         run: task test:cov show=false
       - name: SonarQube Scan
