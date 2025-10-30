@@ -1,0 +1,7 @@
+haproxy_repo_key_url: "https://haproxy.debian.net/haproxy-archive-keyring.gpg"
+haproxy_repo_key_path: "/etc/apt/keyrings/haproxy-archive-keyring.gpg"
+haproxy_repo_list_path: "/etc/apt/sources.list.d/haproxy.list"
+haproxy_repo_distribution: "bookworm-backports"
+haproxy_repo_component: "main"
+haproxy_repo_url: "https://haproxy.debian.net"
+haproxy_version: "3.2"
