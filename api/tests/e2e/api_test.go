@@ -65,7 +65,7 @@ func TestMain(m *testing.M) {
 			}
 		},
 		WaitingFor: wait.ForHTTP("/health").
-			WithStartupTimeout(30 * time.Second),
+			WithStartupTimeout(10 * time.Second),
 	}
 
 	apiContainer, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{

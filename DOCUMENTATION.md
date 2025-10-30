@@ -227,6 +227,7 @@ In order to run the tests locally, use the following commands:
 task test # both unit & e2e
 task test:unit # unit tests only
 task test:e2e # e2e tests only
+task test:cov show=true # all tests with coverage data output & conditionally show report
 ```
 
 ### Web Frontend
