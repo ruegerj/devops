@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if ! command -v ansible >/dev/null 2>&1; then
   echo "ansible not installed!"
@@ -26,5 +26,5 @@ vagrant up
 # just wait a little bit for thing to calm down
 sleep 10
 
-ansible-playbook ansible/site.yml -i ansible/inventory.dev.yml --extra-vars "token=$(openssl rand -base64 64)"
+ansible-playbook ansible/site.yml -i ansible/staging.yml --extra-vars "token=$(openssl rand -base64 64)"
 
