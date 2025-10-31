@@ -7,3 +7,10 @@
 
 - name: Install K3s cluster
   ansible.builtin.import_playbook: k3s.orchestration.site
+
+- name: Setup K3s mgmt system
+  hosts: mgmt
+  gather_facts: true
+  become: true
+  roles:
+    - role: kube-tools

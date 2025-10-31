@@ -1,0 +1,12 @@
+---
+- name: Import kube config
+  import_tasks: kubeconf.yml
+
+- name: Install kubectl
+  import_tasks: kubectl.yml
+
+- name: Install helm
+  import_tasks: helm.yml
+
+- name: Prepare venv
+  import_tasks: venv.yml

@@ -1,0 +1,17 @@
+---
+- name: Install pip and venv
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - python3-venv
+    state: present
+    update_cache: true
+
+- name: Setup K3s venv
+  ansible.builtin.pip:
+    virtualenv: "{{ k3s_ansible_venv_path }}"
+    virtualenv_command: python3 -m venv
+    name:
+      - kubernetes
+      - PyYAML
+      - jsonpatch
