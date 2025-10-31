@@ -9,6 +9,7 @@ pkgs.mkShell {
 
     #ci
     act
+    ansible-lint
 
     #infra
     openssl

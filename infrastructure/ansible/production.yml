@@ -10,12 +10,11 @@ mgmt:
   hosts:
     srv-001.devops.ls.eee.intern:
 
-lb:
-  hosts:
-    srv-001.devops.ls.eee.intern:
-
 k3s_cluster:
   children:
+    loadbalancer:
+      hosts:
+        srv-001.devops.ls.eee.intern:
     server:
       hosts:
         srv-019.devops.ls.eee.intern:

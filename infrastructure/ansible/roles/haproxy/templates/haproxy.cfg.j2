@@ -1,0 +1,19 @@
+defaults
+    timeout client 10s
+    timeout connect 5s
+    timeout server 10s
+   
+frontend k3s-frontend
+    bind *:{{ api_port | default('6443') }}
+    mode tcp
+    option tcplog
+    default_backend k3s-backend
+
+backend k3s-backend
+    mode tcp
+    option tcp-check
+    balance roundrobin
+    default-server inter 10s downinter 5s
+{% for node in groups['server'] %}
+    server node-{{ loop.index }} {{ hostvars[node]['ansible_host'] | default(node) }}:{{ api_port | default('6443') }} check
+{% endfor %}

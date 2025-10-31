@@ -1,6 +1,4 @@
----
-- name: Get HAProxy version installed
-  
+--- 
 - name: Ensure directory for APT keyrings exists
   become: true
   ansible.builtin.file:
@@ -37,3 +35,11 @@
     name: haproxy
     state: started
     enabled: yes
+
+- name: Copy HAProxy config
+  ansible.builtin.template:
+    src: "haproxy.cfg.j2"
+    dest: "/etc/haproxy/haproxy.cfg"
+    owner: root
+    group: root
+    mode: "0644"
