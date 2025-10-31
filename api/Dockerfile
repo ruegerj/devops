@@ -17,7 +17,9 @@ FROM alpine:3.22
 
 WORKDIR /app
 EXPOSE 3000
+ENTRYPOINT [ "/sbin/tini", "--" ]
 CMD [ "./api" ]
+RUN apk add --no-cache tini
 ENV HOST=0.0.0.0
 ENV PORT=3000
 ARG JWT_KEY
