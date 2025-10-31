@@ -24,7 +24,12 @@ async function globalSetup() {
 	const accessToken = jwt.sign({ sub: 'john.doe' }, jwtSigningKey, { algorithm: 'HS256' });
 
 	// ensure preview launches latest build
-	execSync('pnpm run build');
+	execSync('pnpm run build', {
+		env: {
+			...process.env
+		},
+		stdio: 'inherit'
+	});
 
 	// launch sveltekit instance
 	const svelteKitProcess = spawn('pnpm', ['run', 'preview'], {

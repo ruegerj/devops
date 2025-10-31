@@ -42,6 +42,12 @@ tasks:
     cmds:
       - pnpm run test:e2e
 
+  test:cov:
+    desc: Runs all tests of the project, while collecting coverage data
+    cmds:
+      - pnpm run test:cov
+      - pnpm run cov:merge
+
   generate:env:
     desc: Generates a .env file holding all relevant options for a local workspace
     preconditions:
