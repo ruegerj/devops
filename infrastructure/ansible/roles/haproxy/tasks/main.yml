@@ -30,12 +30,6 @@
     state: present
     update_cache: yes
 
-- name: Ensure HAProxy service is enabled and started
-  ansible.builtin.service:
-    name: haproxy
-    state: started
-    enabled: yes
-
 - name: Copy HAProxy config
   ansible.builtin.template:
     src: "haproxy.cfg.j2"
@@ -43,3 +37,10 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: Ensure HAProxy service is enabled and started
+  ansible.builtin.service:
+    name: haproxy
+    state: restarted
+    enabled: yes
+
