@@ -3,7 +3,6 @@ import { cwd } from 'node:process';
 import { randomBytes } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
-
 import { test as baseTest } from '@playwright/test';
 
 const istanbulCLIOutput = join(cwd(), 'coverage', 'e2e');

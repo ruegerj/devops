@@ -31,6 +31,15 @@ async function globalSetup() {
 		stdio: 'inherit'
 	});
 
+	const collectCoverage = process.env.USE_PLUGIN_ISTANBUL;
+	if (collectCoverage) {
+		console.log('Instrumenting SvelteKit server for coverage...');
+		const serverSrc = join(cwd(), '.svelte-kit/output/server');
+		execSync(`pnpm exec babel ${serverSrc} --out-dir ${serverSrc} --extensions ".js,.ts"`, {
+			stdio: 'inherit'
+		});
+	}
+
 	// launch sveltekit instance
 	const svelteKitProcess = spawn('pnpm', ['run', 'preview'], {
 		cwd: cwd(),

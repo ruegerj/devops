@@ -11,12 +11,12 @@ export default defineConfig({
 		Icons({
 			compiler: 'svelte'
 		}),
-		// instrument files for coverage collection in e2e
+		// instrument files for clientside coverage collection in e2e
 		...(process.env.USE_PLUGIN_ISTANBUL
 			? [
 					IstanbulPlugin({
 						include: 'src/**/*',
-						exclude: ['node_modules', 'e2e', '**/*.spec.ts', '**/*.spec.ts'],
+						exclude: ['node_modules', 'e2e', '**/*.spec.ts', 'src/lib/components/ui/*'],
 						extension: ['.svelte', '.ts'],
 						forceBuildInstrument: true
 					})

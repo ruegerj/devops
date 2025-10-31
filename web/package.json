@@ -19,6 +19,9 @@
 		"cov:merge": "nyc merge coverage/e2e coverage/coverage-e2e.json && nyc merge coverage coverage/coverage-combined.json && nyc report --temp-dir=coverage --reporter=lcov --reporter=text-summary"
 	},
 	"devDependencies": {
+		"@babel/cli": "^7.28.3",
+		"@babel/core": "^7.28.5",
+		"@babel/preset-typescript": "^7.28.5",
 		"@eslint/compat": "^1.4.0",
 		"@eslint/js": "^9.36.0",
 		"@iconify/json": "^2.2.392",
@@ -36,6 +39,7 @@
 		"@types/wait-on": "^5.3.4",
 		"@vitest/browser": "^4.0.6",
 		"@vitest/coverage-istanbul": "^4.0.6",
+		"babel-plugin-istanbul": "^7.0.1",
 		"clsx": "^2.1.1",
 		"eslint": "^9.36.0",
 		"eslint-config-prettier": "^10.1.8",
