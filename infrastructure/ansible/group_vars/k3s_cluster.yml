@@ -5,8 +5,7 @@ api_port: 6443
 
 token: "CHANGE_ME!"
 
-#argocd_url: "argo.g08.local"
-argocd_url: "192.168.122.11.nip.io"
+argocd_url: "argo.g08.local"
 
 # Optional vars
 # extra_server_args: ""
