@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { readFile, writeFile, readdir, access, unlink } = require('node:fs/promises');
 const { join } = require('node:path');
 const { cwd } = require('node:process');

@@ -52,6 +52,7 @@ Dummy app that displays some information fetched from a private REST api.
 - [X] CI Pipeline (GitHub Actions)
     - [X] Build
     - [X] Lint
+    - [X] Static Code Quality / Test Coverage Analysis (SonarQube)
     - [X] Test
     - [X] Static Vulnerability Analysis (Snyk)
 
@@ -288,6 +289,7 @@ In order to run the tests locally, use the following commands:
 task test # both unit & e2e
 task test:unit # unit tests only
 task test:e2e # e2e tests only
+task test:cov show=true # all tests with coverage data output & conditionally show report
 ```
 
 > Before you execute e2e tests for the first time, make sure to run this command:
