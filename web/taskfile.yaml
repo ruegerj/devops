@@ -48,7 +48,7 @@ tasks:
       - rm -rf coverage
       - pnpm run test:cov
       - pnpm run cov:merge
-      - if [ "{{.show | default `false`}}" = "true" ]; then open coverage/lcov-report/index.html; fi
+      - if [ "{{.show | default `false`}}" = "true" ]; then open coverage/combined/lcov-report/index.html; fi
 
   generate:env:
     desc: Generates a .env file holding all relevant options for a local workspace

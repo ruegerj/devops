@@ -15,9 +15,6 @@ export default defineConfig({
 		...(process.env.USE_PLUGIN_ISTANBUL
 			? [
 					IstanbulPlugin({
-						include: 'src/**/*',
-						exclude: ['node_modules', 'e2e', '**/*.spec.ts', 'src/lib/components/ui/*'],
-						extension: ['.svelte', '.ts'],
 						forceBuildInstrument: true
 					})
 				]
@@ -28,9 +25,17 @@ export default defineConfig({
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		coverage: {
 			provider: 'istanbul',
-			exclude: ['node_modules', 'e2e', '**/*.spec.ts', 'src/lib/components/ui/*'],
-			include: ['src/**/*.ts', 'src/**/*.svelte'],
-			extension: ['.svelte', '.ts']
+			exclude: [
+				'node_modules',
+				'.svelte-kit',
+				'build',
+				'coverage',
+				'e2e',
+				'**/*.spec.ts',
+				'src/lib/components/ui',
+				'src/lib/server/coverage.handler.ts'
+			],
+			include: ['src/**/*.ts', 'src/**/*.svelte']
 		}
 	}
 });
