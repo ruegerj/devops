@@ -16,6 +16,7 @@ jobs:
   lint:
     uses: ./.github/workflows/lint-web.yaml
     needs: [build]
+    secrets: inherit
 
   test:
     uses: ./.github/workflows/test-web.yaml

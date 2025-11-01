@@ -46,6 +46,10 @@ jobs:
     defaults:
       run:
         working-directory: web
+    env:
+      NODE_ENV: ci
+      API_BASE_URL: ${{ vars.CI_API_BASE_URL }}
+      ACCESS_TOKEN: ${{ secrets.CI_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: arduino/setup-task@v2
@@ -71,6 +75,9 @@ jobs:
       - name: Install Dependencies
         if: steps.cache-node_modules.outputs.cache-hit != true
         run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm dlx playwright install --with-deps
 
       - name: Create coverage reports
         run: task test:cov show=false
