@@ -22,3 +22,8 @@ k3s_cluster:
         192.168.122.13:
     agent:
       hosts:
+  vars:
+    # fix servicelb external node ip
+    server_config_yaml: |
+      node-ip: {{ ansible_host }}
+      node-external-ip: {{ ansible_host }} 

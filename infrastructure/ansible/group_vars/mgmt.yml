@@ -10,4 +10,4 @@ kubeconfig_src_node: "{{ groups['server'][0] }}"
 kubeconfig_api_endpoint: "{{ groups['loadbalancer'][0] }}"
 
 # venv for ansible helm
-k3s_ansible_venv_path: "/opt/k3-ansible/.venv"
+k3s_ansible_venv_path: "/home/vagrant/.venv"

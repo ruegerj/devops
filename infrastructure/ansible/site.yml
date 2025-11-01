@@ -11,6 +11,14 @@
 - name: Setup K3s mgmt system
   hosts: mgmt
   gather_facts: true
-  become: true
   roles:
     - role: kube-tools
+
+- name: Bootstrap K3s cluster
+  hosts: mgmt
+  gather_facts: true
+  roles:
+    - role: argo
+      become: true
+      vars:
+        ansible_python_interpreter: "{{ k3s_ansible_venv_path }}/bin/python"

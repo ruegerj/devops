@@ -6,6 +6,7 @@
       - python3-venv
     state: present
     update_cache: true
+  become: true
 
 - name: Setup K3s venv
   ansible.builtin.pip:
