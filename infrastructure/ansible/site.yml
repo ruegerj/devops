@@ -1,9 +1,10 @@
+---
 - name: Install cluster loadbalancer
   hosts: loadbalancer
   become: true
   gather_facts: true
   roles:
-   - role: haproxy
+    - role: haproxy
 
 - name: Install K3s cluster
   ansible.builtin.import_playbook: k3s.orchestration.site
@@ -12,13 +13,13 @@
   hosts: mgmt
   gather_facts: true
   roles:
-    - role: kube-tools
+    - role: kube_tools
 
 - name: Bootstrap K3s cluster
   hosts: mgmt
   gather_facts: true
   roles:
-    - role: argo
+    - role: argocd
       become: true
       vars:
         ansible_python_interpreter: "{{ k3s_ansible_venv_path }}/bin/python"

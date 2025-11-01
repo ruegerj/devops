@@ -17,6 +17,7 @@
   ansible.builtin.template:
     src: "templates/argocd-values.yml.j2"
     dest: "/tmp/argocd-values.yml"
+    mode: "0644"
 
 - name: Deploy Argo CD via Helm
   kubernetes.core.helm:

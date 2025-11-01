@@ -9,7 +9,7 @@
 # 1. Helm is not installed (rc != 0)
 # 2. OR the installed version differs from helm_version
 - name: Download Artifact only if needed
-  when: helm_version_output.rc != 0 or (helm_version not in helm_version_output.stdout) 
+  when: helm_version_output.rc != 0 or (helm_version not in helm_version_output.stdout)
   block:
     - name: Download Helm archive
       ansible.builtin.get_url:

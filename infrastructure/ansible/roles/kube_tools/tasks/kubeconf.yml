@@ -1,40 +1,40 @@
 ---
 - name: Read K3s kubeconfig from server node
   ansible.builtin.slurp:
-    src: "{{ kubeconfig_src_path }}"
-  register: kubeconfig_raw
+    src: "{{ kube_tools_kubeconfig_src_path }}"
+  register: kube_tools_kubeconfig_raw
   delegate_to: "{{ kubeconfig_src_node }}"
   become: true
 
 - name: Decode kubeconfig content
   ansible.builtin.set_fact:
-    kubeconfig_content: "{{ kubeconfig_raw.content | b64decode }}"
+    kube_tools_kubeconfig_content: "{{ kube_tools_kubeconfig_raw.content | b64decode }}"
 
 - name: Replace kubeconfig API endpoint
   ansible.builtin.set_fact:
-    kubeconfig_modified: "{{ kubeconfig_content | regex_replace('127\\.0\\.0\\.1', kubeconfig_api_endpoint) }}"
+    kube_tools_kubeconfig_modified: "{{ kube_tools_kubeconfig_content | regex_replace('127\\.0\\.0\\.1', kubeconfig_api_endpoint) }}"
 
 - name: Ensure .kube directory exists on management server
   ansible.builtin.file:
-    path: "{{ kubeconfig_dest_path }}"
+    path: "{{ kube_tools_kubeconfig_dest_path }}"
     state: directory
     owner: "{{ kubeconfig_user }}"
     group: "{{ kubeconfig_user }}"
-    mode: '0700'
+    mode: "0700"
 
 - name: Write kubeconfig to management server
   ansible.builtin.copy:
-    content: "{{ kubeconfig_modified }}"
-    dest: "{{ kubeconfig_dest_path}}/config"
+    content: "{{ kube_tools_kubeconfig_modified }}"
+    dest: "{{ kube_tools_kubeconfig_dest_path }}/config"
     owner: "{{ kubeconfig_user }}"
     group: "{{ kubeconfig_user }}"
-    mode: '0600'
+    mode: "0600"
 
 - name: Export KUBECONFIG environment variable
   ansible.builtin.lineinfile:
     path: "/home/{{ kubeconfig_user }}/.bashrc"
-    regexp: '^export KUBECONFIG='
-    line: "export KUBECONFIG={{ kubeconfig_dest_path}}/config"
+    regexp: "^export KUBECONFIG="
+    line: "export KUBECONFIG={{ kube_tools_kubeconfig_dest_path }}/config"
     owner: "{{ kubeconfig_user }}"
     group: "{{ kubeconfig_user }}"
-    mode: '0644'
+    mode: "0644"

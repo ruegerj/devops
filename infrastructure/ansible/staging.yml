@@ -1,15 +1,14 @@
 ---
 # STAGING INVENTORY
-all: 
+all:
   vars:
     ansible_user: vagrant
     ansible_ssh_private_key_file: ./id_vagrant
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' # living on the edge :D, pls don't do in prod
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" # living on the edge :D, pls don't do in prod
 
 mgmt:
   hosts:
-    192.168.122.10: 
-
+    192.168.122.10:
 k3s_cluster:
   children:
     loadbalancer:
@@ -24,6 +23,6 @@ k3s_cluster:
       hosts:
   vars:
     # fix servicelb external node ip
-    server_config_yaml: |
+    server_config_yaml: |-
       node-ip: {{ ansible_host }}
-      node-external-ip: {{ ansible_host }} 
+      node-external-ip: {{ ansible_host }}

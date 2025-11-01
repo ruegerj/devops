@@ -1,3 +1,4 @@
+---
 haproxy_repo_key_url: "https://haproxy.debian.net/haproxy-archive-keyring.gpg"
 haproxy_repo_key_path: "/etc/apt/keyrings/haproxy-archive-keyring.gpg"
 haproxy_repo_list_path: "/etc/apt/sources.list.d/haproxy.list"

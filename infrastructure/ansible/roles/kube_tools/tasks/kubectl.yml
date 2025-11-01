@@ -1,7 +1,7 @@
 ---
 - name: Get kubectl installed version
   ansible.builtin.command: kubectl version --client | head -n 1
-  register: kubectl_version_output
+  register: kube_tools_kubectl_version_output
   changed_when: false
   ignore_errors: true
 
@@ -9,17 +9,18 @@
 # 1. kubectl is not installed (rc != 0)
 # 2. OR the installed versions differs from kubectl_version
 - name: Download Artifact only if needed
-  when: kubectl_version_output.rc != 0 or (kubectl_version not in kubectl_version_output.stdout)
+  when: kube_tools_kubectl_version_output.rc != 0 or (kubectl_version not in kube_tools_kubectl_version_output.stdout)
   block:
     - name: Download kubectl binary
       ansible.builtin.get_url:
         url: https://dl.k8s.io/release/{{ kubectl_version }}/bin/{{ os_type }}/{{ os_arch }}/kubectl
         dest: /tmp/kubectl
-    
+        mode: "0644"
+
     - name: Install kubectl binary
       ansible.builtin.copy:
         src: "/tmp/kubectl"
-        dest: "{{ kubectl_install_dir }}/kubectl"
+        dest: "{{ kube_tools_kubectl_install_dir }}/kubectl"
         mode: "0755"
         remote_src: true
       become: true
@@ -28,5 +29,3 @@
       ansible.builtin.file:
         path: /tmp/kubectl
         state: absent
-
-    

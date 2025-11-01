@@ -1,9 +1,0 @@
----
-os_arch: "amd64"
-os_type: "linux"
-
-helm_install_dir: "/usr/local/bin"
-kubectl_install_dir: "/usr/local/bin"
-
-kubeconfig_src_path: "/etc/rancher/k3s/k3s.yaml"
-kubeconfig_dest_path: "/home/{{ kubeconfig_user }}/.kube"

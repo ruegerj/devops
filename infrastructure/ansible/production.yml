@@ -1,6 +1,6 @@
 ---
 # PRODUCTION INVENTORY
-all: 
+all:
   vars:
     ansible_user: labadmin
     ansible_become_pass: CHANGE_ME
@@ -9,7 +9,6 @@ all:
 mgmt:
   hosts:
     srv-001.devops.ls.eee.intern:
-
 k3s_cluster:
   children:
     loadbalancer:

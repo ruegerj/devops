@@ -1,6 +1,7 @@
+---
 k3s_version: v1.31.12+k3s1
 
-api_endpoint: "{{ groups['loadbalancer'][0]| default(groups['server'][0]) }}"
+api_endpoint: "{{ groups['loadbalancer'][0] | default(groups['server'][0]) }}"
 api_port: 6443
 
 token: "CHANGE_ME!"

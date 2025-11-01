@@ -1,3 +1,4 @@
+---
 # versions
 helm_version: "v3.15.4"
 kubectl_version: "v1.31.0"
@@ -10,4 +11,8 @@ kubeconfig_src_node: "{{ groups['server'][0] }}"
 kubeconfig_api_endpoint: "{{ groups['loadbalancer'][0] }}"
 
 # venv for ansible helm
-k3s_ansible_venv_path: "/home/vagrant/.venv"
+k3s_ansible_venv_path: "/home/{{ ansible_user }}/.venv"
+
+# os type for kube_tool installments
+os_arch: "amd64"
+os_type: "linux"

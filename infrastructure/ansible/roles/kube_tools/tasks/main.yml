@@ -1,0 +1,9 @@
+---
+- name: Import kube config
+  ansible.builtin.import_tasks: kubeconf.yml
+- name: Install kubectl
+  ansible.builtin.import_tasks: kubectl.yml
+- name: Install helm
+  ansible.builtin.import_tasks: helm.yml
+- name: Prepare venv
+  ansible.builtin.import_tasks: venv.yml
