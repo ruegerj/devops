@@ -54,11 +54,11 @@ Dummy app that displays some information fetched from a private REST api.
     - [X] Image Push (GitHub Container Registry)
     - [ ] (ArgoCD Sync)
 
-- [ ] K8S or K3S Hosting
-- [ ] ArgoCD for Deployments
+- [X] K8S or K3S Hosting
+- [X] ArgoCD for Deployments
 - [ ] Credential Vault (Hashicorp Vault?)
 - [X] SSH Reverse Tunnel
-- [ ] Configuration as Code (TerraForm + Ansible?) -> Desaster Recovery
+- [X] Configuration as Code (TerraForm + Ansible?) -> Desaster Recovery
 
 **Extensions**
 
@@ -70,18 +70,22 @@ Dummy app that displays some information fetched from a private REST api.
 
 ### Local Workspace
 
-In order work on the applications & pipelines locally, one needs the following tools:
+In order work on this repo locally, one needs the following tools:
 
 - [Go](https://go.dev/) (v1.25)
 - [golangci-lint](https://golangci-lint.run/) (>= v2.5.0)
 - [Task](taskfile.dev) (v3)
 - [Docker](https://www.docker.com/)
 - [pnpm](https://pnpm.io/) (v10.x)
+- [ansible](https://docs.ansible.com/)
+- [ansible-lint](https://ansible.readthedocs.io/projects/lint/installing/#installing-the-latest-version) (python3 and pip required)
 
 Recommended but not mandatory:
 
 - [act](https://github.com/nektos/act)
 - [openssl](https://openssl-library.org/) (if you want to generate JWTs by hand)
+- [Vagrant](https://developer.hashicorp.com/vagrant)
+- [libvirt](https://libvirt.org/) (Presume you alread have a virtualization platform like QEMU)
 
 For starting the application locally, testing, linting, or any other automations [Task](taskfile.dev) is used as a modern cross-platform Make
 alternative. You can run task cmd's either in the repository root or in the dedicated subdirectories of the applications:
@@ -331,10 +335,37 @@ linter. Additionaly it checks the format of every file using [prettier](https://
 - **unit test** - runs all unit tests using [vitest](https://vitest.dev)
 - **e2e test** - runs all e2e tests using [Playwright](https://playwright.dev/) (see _Tests_ section of [Web](#web-frontent))
 
+### Continous Integration - Infrastructure
+
 ## Infrastructure
+The following diagram gives a brief overview of the infrastructure setup the application is running on:
+
+```mermaid
+---
+title: Infrastructure overview
+----
+architecture-beta
+    group k3s(server)[K3s cluster]
+
+    service srv001(server)[HAProxy]
+    service srv019(server)[node01] in k3s
+    service srv022(server)[node02] in k3s
+    service srv023(server)[node03] in k3s
+
+    junction junctionCenter
+
+    srv001:R -- L:junctionCenter
+    srv019:B -- T:junctionCenter
+    srv022:T -- B:junctionCenter
+    srv023:L -- R:junctionCenter
+```
+
+At the heart of the environment is a three node K3s cluster configured in a High Availability (HA) setup via [etcd](https://etcd.io/). It's resposible for hosting the application and all supporting services. For ingress the cluster uses a combination of ServiceLB and [Traefik](https://traefik.io/traefik). Entrypoints to both, the K3s API and Ingress controller are exposed as a single IP via  a [HAProxy](https://www.haproxy.org/) loadbalancer infront of the cluster.
+
+> Note: In a ideal world atleast two loadbalancer e.g. HAProxy would be deployed in a HA setup, preventing the introduction of a new Single Point of failure (SPF). Another approach would be to use on cluster services like [MetalLB](https://metallb.io/installation/) and [kube-vip](https://kube-vip.io/) to introduce floating IPs and thus eliminating SPFs. In order to keep the infrastructure relatively simple and rather focusing on a broader set of devops topics, it was decided that in this particular case, having a single node loadbalancer at the expense of introducing a new SPF is acceptable.
 
 ### Network Access for Github Actions
-On order to allow access to the Enterprise Lab VMs from the GitHub Action pipelines without the need of Pulse Secure VPN, a SSH reverse tunnel from `srv-001-devops.ls.eee.intern` to a bastion host (`devops-bastion` - 83.228.209.199) located at a public cloud provider was estabilished.
+In order to allow access to the Enterprise Lab VMs from the GitHub Action pipelines without the need of Pulse Secure VPN, a SSH reverse tunnel from `srv-001-devops.ls.eee.intern` to a bastion host (`devops-bastion`) located at a public cloud provider was estabilished.
 
 ```mermaid
 ---
@@ -344,6 +375,51 @@ sequenceDiagram
     Github Actions Runner->devops-bastion: ssh -i id_devops -p 3333 labadmin@devops-bastion
     srv-001-devops.ls.eee.intern->devops-bastion: ssh -R 3333:localhost:22 debian@devops-bastion -i id_devops-bastion
 ```
+
+### Automated infrastructure deployment via Ansible
+Students were given four plain debian 12 (bookworm) VMs to deploy there infrastructure.
+In order to prepare the infrastructure needed [Ansible](https://docs.ansible.com/) was used as a Infrastructure as Code (IaC) tool, enabeling fast and declarative provisioning aswell as rebuilding capabilities in case of a Disaster Recovery (DR) scenario. 
+The diagram below gives quick overview of the playbook used for provisioning:
+
+```
+---
+title: Ansible overview
+---
+flowchart TD
+    staging_inventory[staging.yml]
+    production_inventory[production.yml]
+    site[/site.yml/]
+    k3s-ansible[/k3s-ansible.yml/]
+    argocd(argocd)
+    haproxy(haproxy)
+    kube_tools(kube_tools)
+
+
+
+    staging_inventory --> site
+    production_inventory --> site
+    site --> haproxy
+    site --> k3s-ansible
+    site --> kube_tools
+    site --> argocd
+
+```
+
+- **staging.yml** - inventory for staging environment
+- **production.yml** - inventory for production environment
+- **site.yml** - main playbook orchestrating the provisioning
+- **haproxy** - role responsible for installing and configuring haproxy
+- **k3s-ansible** - imported playbook from [k3s-ansible](https://github.com/k3s-io/k3s-ansible) responsible for provisioning the K3s HA cluster
+- **kube_tools** - role for setting up [kubectl](https://kubernetes.io/docs/reference/kubectl/), [helm](https://helm.sh/) aswell as the needed Python libraries for ansible to interact with the K3s cluster
+- **argocd** - role for deploying [argo-cd](https://argo-cd.readthedocs.io/en/stable/) to the K3s cluster
+
+### Workload deployment via ArgoCD
+After initial infrastructure setup via Ansible, ArgoCD is used inorder to deploy K3s cluster workloads.
+lorem ipsum
+
+**Testing of Ansible Playbooks:**
+On pushing to `main` or creating a `pull request` all Ansible playbooks are checked for syntactical correctness in the `Lint Ansible` stage. For e2e testing of the playbooks the `Vagrant` file in the infrastructure root provides a set of VMs which can be started with `vagrant up`. The IPs of these VMs are set in the `inventory.dev.yml` file, therefore any playbook can be tested against this set of VMs.
+
 ## Miscellaneous
 
 ### GitLab Docs Sync
