@@ -414,7 +414,8 @@ flowchart TD
 - **kube_tools** - role for setting up [kubectl](https://kubernetes.io/docs/reference/kubectl/), [helm](https://helm.sh/) aswell as the needed Python libraries for ansible to interact with the K3s cluster
 - **argocd** - role for deploying [argo-cd](https://argo-cd.readthedocs.io/en/stable/) to the K3s cluster
 
-**Tests**
+**Tests:**
+
 For e2e testing of the Ansible playbooks a staging environment using [Vagrant](https://developer.hashicorp.com/vagrant) VMs can be deployed locally.
 
 In order to initialize all needed dependencies for the testbed run (first time only):
