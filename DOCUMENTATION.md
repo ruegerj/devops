@@ -343,7 +343,7 @@ The following diagram gives a brief overview of the infrastructure setup the app
 ```mermaid
 ---
 title: Infrastructure overview
-----
+---
 architecture-beta
     group k3s(server)[K3s cluster]
 
@@ -381,7 +381,7 @@ Students were given four plain debian 12 (bookworm) VMs to deploy there infrastr
 In order to prepare the infrastructure needed [Ansible](https://docs.ansible.com/) was used as a Infrastructure as Code (IaC) tool, enabeling fast and declarative provisioning aswell as rebuilding capabilities in case of a Disaster Recovery (DR) scenario. 
 The diagram below gives quick overview of the playbook used for provisioning:
 
-```
+```mermaid
 ---
 title: Ansible overview
 ---
