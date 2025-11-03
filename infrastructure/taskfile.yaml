@@ -1,0 +1,53 @@
+version: "3"
+
+tasks:
+  lint:
+    desc: Runs static linters (ansible-lint)
+    preconditions:
+      - ansible-lint --version
+    cmds: 
+      - ansible-lint --exclude taskfile.yaml
+  
+  generate:env:
+    desc: Generates a .env file holding all relevant values for the staging environment
+    preconditions: 
+      - openssl version
+    cmds: 
+      - touch .env
+      - echo "TOKEN=\"$(openssl rand -base64 64)\"" > .env
+    generate:
+      - .env
+
+  generate:key:
+    desc: Generates a keypair used for ssh auth in staging env
+    cmds: 
+      - ssh-keygen -t ed25519 -f ./id_vagrant -N "" -q
+    generate:
+      - id_vagrant
+      - id_vagrant.pub
+
+  stage:up:
+    desc: Deploys staging environment and runs playbook against it
+    dotenv: [.env]
+    preconditions:
+      - ansible --version
+      - vagrant --version
+    cmds:
+      - vagrant up
+      - ansible-galaxy install -r ansible/requirements.yml
+      - ansible-playbook ansible/site.yml -i ansible/staging.yml --extra-vars "token=$(echo $TOKEN)"
+
+  stage:rerun:
+    desc: Reruns playbooks against existing staging environment
+    dotenv: [.env]
+    preconditions:
+      - ansible --version
+    cmds:
+      - ansible-playbook ansible/site.yml -i ansible/staging.yml --extra-vars "token=$(echo $TOKEN)"
+
+  stage:down:
+    desc: Removes staging environment
+    preconditions:
+      - vagrant --version
+    cmds: 
+      - vagrant destroy -f

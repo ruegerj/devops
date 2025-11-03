@@ -1,3 +1,5 @@
+.env
+.ansible/
 .vagrant/
 id_vagrant*
 
