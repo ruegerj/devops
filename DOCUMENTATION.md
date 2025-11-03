@@ -336,6 +336,7 @@ linter. Additionaly it checks the format of every file using [prettier](https://
 - **e2e test** - runs all e2e tests using [Playwright](https://playwright.dev/) (see _Tests_ section of [Web](#web-frontent))
 
 ### Continous Integration - Infrastructure
+Upon every _push_ or _pull request_ targeting the `main` branch, a static linter (ansible-lint) is run against all Ansible playbooks, detecting potential formatting issues and quality flaws.
 
 ## Infrastructure
 The following diagram gives a brief overview of the infrastructure setup the application is running on:
@@ -413,12 +414,41 @@ flowchart TD
 - **kube_tools** - role for setting up [kubectl](https://kubernetes.io/docs/reference/kubectl/), [helm](https://helm.sh/) aswell as the needed Python libraries for ansible to interact with the K3s cluster
 - **argocd** - role for deploying [argo-cd](https://argo-cd.readthedocs.io/en/stable/) to the K3s cluster
 
+**Tests**
+For e2e testing of the Ansible playbooks a staging environment using [Vagrant](https://developer.hashicorp.com/vagrant) VMs can be deployed locally.
+
+In order to initialize all needed dependencies for the testbed run (first time only):
+
+```bash
+task infra:generate:env # generates environment variables needed for the deployment
+task infra:generate:key # generates ssh-keypair used to connect to the staging VMs
+```
+
+The test VMs can then be deployed via:
+
+```bash
+task infra:stage:up 
+```
+
+The `site.yml` playbook will automatically be run against the test VMs. Thus allowing developers to verify that the playbooks are working as desired.
+
+After a change to the ansible roles or playbook:
+
+```bash
+task infra:stage:rerun
+```
+
+Can be executed, to rerun the playbook against the staging environment.
+
+After finishing testing or if a new testrun with clean VMs is desired, the existing staging environment can be wiped using:
+
+```bash
+task infra:stage:down
+```
+
 ### Workload deployment via ArgoCD
 After initial infrastructure setup via Ansible, ArgoCD is used inorder to deploy K3s cluster workloads.
 lorem ipsum
-
-**Testing of Ansible Playbooks:**
-On pushing to `main` or creating a `pull request` all Ansible playbooks are checked for syntactical correctness in the `Lint Ansible` stage. For e2e testing of the playbooks the `Vagrant` file in the infrastructure root provides a set of VMs which can be started with `vagrant up`. The IPs of these VMs are set in the `inventory.dev.yml` file, therefore any playbook can be tested against this set of VMs.
 
 ## Miscellaneous
 
