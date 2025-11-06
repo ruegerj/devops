@@ -20,6 +20,9 @@ export default defineConfig({
 				]
 			: [])
 	],
+	build: {
+		sourcemap: process.env.NODE_ENV != 'production'
+	},
 	test: {
 		expect: { requireAssertions: true },
 		include: ['src/**/*.{test,spec}.{js,ts}'],
