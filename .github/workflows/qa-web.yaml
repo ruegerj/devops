@@ -1,16 +1,21 @@
-name: Lint Web
+name: Quality Assertion Web
 on:
   workflow_call:
 
 jobs:
-  lint:
-    name: Lint & Check
+  sonarqube:
+    name: Sonar
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: web
+    env:
+      NODE_ENV: ci
+      API_BASE_URL: ${{ vars.CI_API_BASE_URL }}
+      ACCESS_TOKEN: ${{ secrets.CI_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - uses: arduino/setup-task@v2
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
@@ -34,8 +39,18 @@ jobs:
         if: steps.cache-node_modules.outputs.cache-hit != true
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
+      - name: Install Playwright Browsers
+        run: pnpm dlx playwright install --with-deps
 
-      - name: Check Svelte
-        run: pnpm run check
+      - name: Create coverage reports
+        run: task test:cov show=false
+
+      - name: Adjust coverage report for SonarQube
+        run: sed -i 's|^SF:|SF:web/|' coverage/combined/lcov.info
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_WEB }}
+        with:
+          projectBaseDir: web

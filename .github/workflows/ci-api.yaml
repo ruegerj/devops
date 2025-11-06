@@ -16,7 +16,6 @@ jobs:
   lint:
     uses: ./.github/workflows/lint-api.yaml
     needs: [build]
-    secrets: inherit
 
   test:
     uses: ./.github/workflows/test-api.yaml
@@ -24,5 +23,10 @@ jobs:
 
   scan:
     uses: ./.github/workflows/scan-api.yaml
+    needs: [lint, test] # scans are expensive -> only run if state is sane
+    secrets: inherit
+
+  qa:
+    uses: ./.github/workflows/qa-api.yaml
     needs: [lint, test] # scans are expensive -> only run if state is sane
     secrets: inherit
