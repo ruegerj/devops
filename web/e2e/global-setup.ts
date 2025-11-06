@@ -6,7 +6,7 @@ import { cwd } from 'node:process';
 import { spawn } from 'node:child_process';
 import { execSync } from 'node:child_process';
 
-async function globalSetup() {
+export default async function globalSetup() {
 	const apiPort = 3000;
 	const jwtSigningKey = 'v3ryS3cure!';
 
@@ -59,15 +59,7 @@ async function globalSetup() {
 
 	console.log('SvelteKit instance started');
 
-	// setup teardown hook
-	process.env.__API_CONTAINER_ID__ = container.getId();
-	process.on('exit', async () => {
-		console.log('exit signal received, stopping svelte app...');
-		svelteKitProcess.kill('SIGINT');
-		await new Promise((res) => setTimeout(res, 2000)); // allow gracefull shutdown -> dump coverage data
-		console.log('stopped & waited for svelte shutdown, stopping container');
-		await container.stop();
-	});
+	// store pid / container id in env for teardown
+	process.env.SVELTE_PID = svelteKitProcess.pid?.toString();
+	process.env.API_CONTAINER_ID = container.getId();
 }
-
-export default globalSetup;
