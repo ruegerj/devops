@@ -62,7 +62,9 @@ async function globalSetup() {
 	// setup teardown hook
 	process.env.__API_CONTAINER_ID__ = container.getId();
 	process.on('exit', async () => {
-		svelteKitProcess.kill();
+		svelteKitProcess.kill('SIGINT');
+		await new Promise((res) => setTimeout(res, 2000)); // allow gracefull shutdown -> dump coverage data
+
 		await container.stop();
 	});
 }
