@@ -55,3 +55,11 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_WEB }}
         with:
           projectBaseDir: web
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-coverage-report
+          path: web/coverage/combined/lcov.info
+          retention-days: 7
+          overwrite: true

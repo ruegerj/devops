@@ -16,11 +16,21 @@ jobs:
           go-version: ${{ vars.GO_VERSION }}
       - uses: arduino/setup-task@v2
       - run: go install github.com/wadey/gocovmerge@latest
+
       - name: Create coverage reports
         run: task test:cov show=false
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_API }}
         with:
           projectBaseDir: api
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage-report
+          path: api/bin/cov.out
+          retention-days: 7
+          overwrite: true
