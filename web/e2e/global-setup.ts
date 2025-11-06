@@ -48,7 +48,8 @@ export default async function globalSetup() {
 			API_BASE_URL: apiUrl,
 			ACCESS_TOKEN: accessToken
 		},
-		stdio: 'inherit'
+		stdio: 'inherit',
+		detached: true
 	});
 
 	await waitOn({

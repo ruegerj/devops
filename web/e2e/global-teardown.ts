@@ -6,7 +6,7 @@ export default async function globalTeardown() {
 
 	if (sveltePid) {
 		console.log(`Stopping Svelte app (pid: ${sveltePid})...`);
-		process.kill(parseInt(sveltePid), 'SIGINT');
+		process.kill(-parseInt(sveltePid), 'SIGINT'); // kill whole process group (including children)
 		await new Promise((res) => setTimeout(res, 2000));
 		console.log('Stopped app, grace period for shutdown elapsed...');
 	}
@@ -17,6 +17,4 @@ export default async function globalTeardown() {
 		execSync(`docker rm -f ${apiContainerId}`, { stdio: 'inherit' });
 		console.log('Stopped & removed container');
 	}
-
-	console.log('');
 }
