@@ -44,6 +44,8 @@ tasks:
 
   test:cov:
     desc: Runs all tests of the project, while collecting coverage data
+    env:
+      USE_PLUGIN_ISTANBUL: true
     cmds:
       - rm -rf coverage
       - pnpm run test:cov
