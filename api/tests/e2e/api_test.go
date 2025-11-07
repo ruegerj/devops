@@ -34,7 +34,6 @@ var (
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 	jwtSigningKey := "v3ryS3cure!"
-	coverageFlag := "true"
 
 	workingDir, err := os.Getwd()
 	if err != nil {
@@ -42,34 +41,43 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	workingDir = path.Join(workingDir, "..", "..")
-	coverageDir := path.Join(workingDir, "bin", "coverage")
-	if err := os.MkdirAll(coverageDir, 0o755); err != nil {
-		log.Fatalf("Failed to create coverage dir: %v", err)
-	}
-
 	// build & start container from dockerfile
-	req := tc.ContainerRequest{
+	req := &tc.ContainerRequest{
 		FromDockerfile: tc.FromDockerfile{
-			Context:   "../../",
-			BuildArgs: map[string]*string{"WITH_COVERAGE": &coverageFlag},
+			Context: "../../",
 		},
 		ExposedPorts: []string{"3000/tcp"},
 		Env: map[string]string{
-			"JWT_KEY":    jwtSigningKey,
-			"GOCOVERDIR": "/app/coverage",
-		},
-		HostConfigModifier: func(hc *container.HostConfig) {
-			hc.Binds = []string{
-				fmt.Sprintf("%s:/app/coverage", coverageDir),
-			}
+			"JWT_KEY": jwtSigningKey,
 		},
 		WaitingFor: wait.ForHTTP("/health").
 			WithStartupTimeout(10 * time.Second),
 	}
 
+	if isInstrumentationEnabled() {
+		coverageFlag := "true"
+		fmt.Println("Building a testcontainer image using an instrumented binary...")
+
+		workingDir = path.Join(workingDir, "..", "..")
+		coverageDir := path.Join(workingDir, "bin", "coverage")
+		if err := os.MkdirAll(coverageDir, 0o755); err != nil {
+			log.Fatalf("Failed to create coverage dir: %v", err)
+		}
+
+		req.FromDockerfile = tc.FromDockerfile{
+			Context:   "../..",
+			BuildArgs: map[string]*string{"WITH_COVERAGE": &coverageFlag},
+		}
+		req.Env["GOCOVERDIR"] = "/app/coverage"
+		req.HostConfigModifier = func(hc *container.HostConfig) {
+			hc.Binds = []string{
+				fmt.Sprintf("%s:/app/coverage", coverageDir),
+			}
+		}
+	}
+
 	apiContainer, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
-		ContainerRequest: req,
+		ContainerRequest: *req,
 		Started:          true,
 	})
 	if err != nil {
@@ -179,4 +187,9 @@ func readBodyFrom(t *testing.T, resp *http.Response) (string, error) {
 	}
 
 	return strings.Trim(string(body), "\n"), nil
+}
+
+func isInstrumentationEnabled() bool {
+	value := os.Getenv("INSTRUMENT_BINARY")
+	return value == "true"
 }

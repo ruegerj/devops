@@ -37,6 +37,8 @@ tasks:
 
   test:cov:
     desc: Runs all tests of the project, measuring their coverage
+    env:
+      INSTRUMENT_BINARY: true
     cmds:
       - mkdir -p bin
       - mkdir -p bin/coverage

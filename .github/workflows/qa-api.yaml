@@ -6,6 +6,8 @@ jobs:
   sonarqube:
     name: Sonar
     runs-on: ubuntu-latest
+    env:
+      INSTRUMENT_BINARY: true
     defaults:
       run:
         working-directory: api
