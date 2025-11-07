@@ -17,10 +17,6 @@
 	function highlight(text: string, syntax: string): string {
 		return Prism.highlight(text, Prism.languages[syntax], syntax);
 	}
-
-	function onCodeUpdate(newValue: string) {
-		code = newValue;
-	}
 </script>
 
 <pre
@@ -30,6 +26,5 @@
 		value: code,
 		syntax: 'json',
 		editorEnabled: enabled ?? true,
-		highlight: highlight,
-		onUpdate: onCodeUpdate
+		highlight: highlight
 	}}>{@html highlight(code, 'json')}</pre>
