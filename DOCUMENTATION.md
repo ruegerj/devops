@@ -33,9 +33,13 @@ VMs:
   - [Dependency Scanning](#dependency-scanning)
   - [Code Analysis](#code-analysis)
   - [Container Scanning](#container-scanning)
+  - [Credential Scanning](#credential-scanning)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
 
+External
+  - [SonarQube - API](https://sonarcloud.io/project/overview?id=ruegerj_devops_api)
+  - [SonarQube - Web](https://sonarcloud.io/project/overview?id=ruegerj_devops_web)
 
 ## Project Idea & Tools
 
@@ -52,9 +56,9 @@ Dummy app that displays some information fetched from a private REST api.
 - [X] CI Pipeline (GitHub Actions)
     - [X] Build
     - [X] Lint
-    - [X] Static Code Quality / Test Coverage Analysis (SonarQube)
     - [X] Test
     - [X] Static Vulnerability Analysis (Snyk)
+    - [X] Static Code Quality / Test Coverage Analysis (SonarQube)
 
 - [ ] CD Pipeline (Github Actions)
     - [X] Build
@@ -228,8 +232,22 @@ In order to run the tests locally, use the following commands:
 task test # both unit & e2e
 task test:unit # unit tests only
 task test:e2e # e2e tests only
-task test:cov show=true # all tests with coverage data output & conditionally show report
 ```
+
+**Coverage**
+
+In order to generate a test coverage report (and display it conditionally), use the following command:
+
+```bash
+task test:cov show=true
+```
+
+Both unit & e2e tests run with an instrumented go binary, that dumps it's coverage data on graceful shutdown. The instrumentation
+is performed by the go sdk itself. For the e2e testcontainer image the instrumentation is enabled using the environment variable
+_INSTRUMENT_BINARY_.
+
+The combined coverage report can be found in `bin/cov.out`. For CI runs this report is uploaded as artifact (_api-coverage-report_
+) and held for 7 days.
 
 ### Web Frontend
 
@@ -289,13 +307,28 @@ In order to run the tests locally, use the following commands:
 task test # both unit & e2e
 task test:unit # unit tests only
 task test:e2e # e2e tests only
-task test:cov show=true # all tests with coverage data output & conditionally show report
 ```
 
 > Before you execute e2e tests for the first time, make sure to run this command:
 > ```bash
 > pnpm dlx playwright install
 > ```
+
+**Coverage:**
+
+In order to generate a test coverage report (and display it conditionally), use the following command:
+
+```bash
+task test:cov show=true
+```
+
+Both unit & e2e tests use [istanbul](https://istanbul.js.org/) for instrumenting the build output for coverage data collection.
+The instrumentation is enabled using the environment variable _USE_PLUGIN_ISTANBUL_. For instrumenting the clientside files the
+standard [vite](https://vite.dev/) build is used (with the corresponding plugin). The serverside files are explicitly instrumented
+post-build using [babel](https://babeljs.io/). Their coverage is dumped uppon a graceful server shutdown.
+
+The combined coverage report can be found in `coverage/combined/lcov.info`. For CI runs this report is uploaded as artifact
+(_web-coverage-report_) and held for 7 days.
 
 ## Pipelines
 
@@ -312,16 +345,22 @@ flowchart LR
     lint(lint)
     test_unit(unit test)
     test_e2e(e2e test)
-    scan(scan)
+    scan_code(scan code)
+    scan_deps(scan dependencies)
+    qa(quality assertion)
+    m( ):::empty
 
     trigger_push --> build
     trigger_pr --> build
     build --> lint
     build --> test_unit
     build --> test_e2e
-    lint --> scan
-    test_unit --> scan
-    test_e2e --> scan
+    lint --> m
+    test_unit --> m
+    test_e2e --> m
+    m --> scan_code
+    m --> scan_deps
+    m --> qa
 ```
 
 The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `api`
@@ -331,8 +370,11 @@ directory. It features the following steps:
 - **lint** - Statically checks the codebase for potential quality flaws using [golangci-lint](https://golangci-lint.run/)
 - **unit test** - runs all unit tests
 - **e2e test** - runs all e2e tests against a testcontainer instance of the app (see _Tests_ section of [API](#rest-api))
-- **scan** - runs static vulnerability scans using [Snyk](https://snyk.io/)
+- **scan code** - runs static vulnerability scans using [Snyk](https://snyk.io/)
   -> results are uploaded as [GitHub code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts)
+- **scan dependencies** - runs analysis for vulnerable dependency versions using [Snyk](https://snyk.io)
+- **quality assertion** - collects test coverage and runs static code quality checks using [SonarQube](https://www.sonarsource.com/products/sonarqube/)
+  -> coverage report is uploaded as workflow artefact
 
 ### Continous Integration - Web
 
@@ -347,16 +389,22 @@ flowchart LR
     lint(lint)
     test_unit(unit test)
     test_e2e(e2e test)
-    scan(scan)
+    scan_code(scan code)
+    scan_deps(scan dependencies)
+    qa(quality assertion)
+    m( ):::empty
 
     trigger_push --> build
     trigger_pr --> build
     build --> lint
     build --> test_unit
     build --> test_e2e
-    lint --> scan
-    test_unit --> scan
-    test_e2e --> scan
+    lint --> m
+    test_unit --> m
+    test_e2e --> m
+    m --> scan_code
+    m --> scan_deps
+    m --> qa
 ```
 
 The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `web`
@@ -367,8 +415,11 @@ directory. It features the following steps:
 linter. Additionaly it checks the format of every file using [prettier](https://prettier.io/).
 - **unit test** - runs all unit tests using [vitest](https://vitest.dev)
 - **e2e test** - runs all e2e tests using [Playwright](https://playwright.dev/) (see _Tests_ section of [Web](#web-frontent))
-- **scan** - runs static vulnerability scans using [Snyk](https://snyk.io/)
+- **scan code** - runs static vulnerability scans using [Snyk](https://snyk.io/)
   -> results are uploaded as [GitHub code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts)
+- **scan dependencies** - runs analysis for vulnerable dependency versions using [Snyk](https://snyk.io)
+- **quality assertion** - collects test coverage and runs static code quality checks using [SonarQube](https://www.sonarsource.com/products/sonarqube/)
+  -> coverage report is uploaded as workflow artefact
 
 
 ### Continous Deployment
@@ -443,6 +494,9 @@ executed to create, scan & deploy the Docker images for the new release:
 - **push image web** - pushes the web image to the [GitHub container registry](https://github.com/ruegerj/devops/pkgs/container/devops%2Fapi)
   -> the image is taged with the version from the git tag & `latest`
 
+> [!NOTE]
+> Due to some reliability issues, SonarQube analyses are excluded from the CD pipeline so that they do not block deployments.
+
 
 ## Infrastructure
 
@@ -488,6 +542,12 @@ Runs in [CD-pipeline](#continous-integration)
 In order to scan the docker images for vulnerabilites [Snyk Container](https://snyk.io/product/container-vulnerability-management/)
 is used. It scans the freshly built docker images for _web_ & _api_ as well as the base-images (e.g. the respective _Dockerfile_). The scan results are not pushed to GitHub, however the pipeline is failed in order to prevent potentially vulnerable images going
 being released.
+
+### Credential Scanning
+
+In order to ensure that no credentials are checked-in into the source code, the GitHub app
+[GitGuardian](https://www.gitguardian.com/) is used. It will block any commit holding hardcoded credentials (until eventually
+remediated or flagged as false-positive)
 
 
 ## Miscellaneous
