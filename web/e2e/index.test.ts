@@ -1,8 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './base-fixtures';
 import { resolveLocatorFor } from './util';
 
-test('home page has expected title', async ({ page }) => {
+test.beforeEach(async ({ page }) => {
 	await page.goto('/');
+});
+
+test('home page has expected title', async ({ page }) => {
 	const title = resolveLocatorFor(page, 'card-title');
 	await expect(title).toBeVisible();
 	await expect(title).toHaveText('Secret Vault');
@@ -27,8 +30,6 @@ test('vault can be unlocked', async ({ page }) => {
 });
 
 test('vault can be unlocked and locked again', async ({ page }) => {
-	await page.goto('/');
-
 	const unlockBtn = resolveLocatorFor(page, 'unlock-btn');
 	await expect(unlockBtn).toBeVisible();
 	await unlockBtn.click();

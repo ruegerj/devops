@@ -1,0 +1,40 @@
+name: Quality Assertion API
+on:
+  workflow_call:
+
+jobs:
+  sonarqube:
+    name: Sonar
+    runs-on: ubuntu-latest
+    env:
+      INSTRUMENT_BINARY: true
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ vars.GO_VERSION }}
+      - uses: arduino/setup-task@v2
+      - run: go install github.com/wadey/gocovmerge@latest
+
+      - name: Create coverage reports
+        run: task test:cov show=false
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_API }}
+        with:
+          projectBaseDir: api
+          args: >
+            -Dsonar.qualitygate.wait=true
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage-report
+          path: api/bin/cov.out
+          retention-days: 7
+          overwrite: true

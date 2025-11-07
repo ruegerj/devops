@@ -26,3 +26,8 @@ jobs:
     uses: ./.github/workflows/scan-web.yaml
     needs: [lint, test] # scans are expensive -> only run if state is sane
     secrets: inherit
+
+  qa:
+    uses: ./.github/workflows/qa-web.yaml
+    needs: [lint, test] # scans are expensive -> only run if state is sane
+    secrets: inherit

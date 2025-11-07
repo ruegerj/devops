@@ -6,7 +6,7 @@ import { cwd } from 'node:process';
 import { spawn } from 'node:child_process';
 import { execSync } from 'node:child_process';
 
-async function globalSetup() {
+export default async function globalSetup() {
 	const apiPort = 3000;
 	const jwtSigningKey = 'v3ryS3cure!';
 
@@ -24,7 +24,21 @@ async function globalSetup() {
 	const accessToken = jwt.sign({ sub: 'john.doe' }, jwtSigningKey, { algorithm: 'HS256' });
 
 	// ensure preview launches latest build
-	execSync('pnpm run build');
+	execSync('pnpm run build', {
+		env: {
+			...process.env
+		},
+		stdio: 'inherit'
+	});
+
+	const collectCoverage = process.env.USE_PLUGIN_ISTANBUL;
+	if (collectCoverage) {
+		console.log('Instrumenting SvelteKit server for coverage...');
+		const serverSrc = join(cwd(), '.svelte-kit/output/server');
+		execSync(`pnpm exec babel ${serverSrc} --out-dir ${serverSrc} --extensions ".js,.ts"`, {
+			stdio: 'inherit'
+		});
+	}
 
 	// launch sveltekit instance
 	const svelteKitProcess = spawn('pnpm', ['run', 'preview'], {
@@ -34,7 +48,8 @@ async function globalSetup() {
 			API_BASE_URL: apiUrl,
 			ACCESS_TOKEN: accessToken
 		},
-		stdio: 'inherit'
+		stdio: 'inherit',
+		detached: true
 	});
 
 	await waitOn({
@@ -45,12 +60,7 @@ async function globalSetup() {
 
 	console.log('SvelteKit instance started');
 
-	// setup teardown hook
-	process.env.__API_CONTAINER_ID__ = container.getId();
-	process.on('exit', async () => {
-		svelteKitProcess.kill();
-		await container.stop();
-	});
+	// store pid / container id in env for teardown
+	process.env.SVELTE_PID = svelteKitProcess.pid?.toString();
+	process.env.API_CONTAINER_ID = container.getId();
 }
-
-export default globalSetup;

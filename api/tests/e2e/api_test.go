@@ -7,12 +7,15 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/docker/docker/api/types/container"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/stretchr/testify/assert"
@@ -32,8 +35,14 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 	jwtSigningKey := "v3ryS3cure!"
 
+	workingDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Failed to obtain working dir:", err)
+		os.Exit(1)
+	}
+
 	// build & start container from dockerfile
-	req := tc.ContainerRequest{
+	req := &tc.ContainerRequest{
 		FromDockerfile: tc.FromDockerfile{
 			Context: "../../",
 		},
@@ -42,11 +51,33 @@ func TestMain(m *testing.M) {
 			"JWT_KEY": jwtSigningKey,
 		},
 		WaitingFor: wait.ForHTTP("/health").
-			WithStartupTimeout(30 * time.Second),
+			WithStartupTimeout(10 * time.Second),
+	}
+
+	if isInstrumentationEnabled() {
+		coverageFlag := "true"
+		fmt.Println("Building a testcontainer image using an instrumented binary...")
+
+		workingDir = path.Join(workingDir, "..", "..")
+		coverageDir := path.Join(workingDir, "bin", "coverage")
+		if err := os.MkdirAll(coverageDir, 0o755); err != nil {
+			log.Fatalf("Failed to create coverage dir: %v", err)
+		}
+
+		req.FromDockerfile = tc.FromDockerfile{
+			Context:   "../..",
+			BuildArgs: map[string]*string{"WITH_COVERAGE": &coverageFlag},
+		}
+		req.Env["GOCOVERDIR"] = "/app/coverage"
+		req.HostConfigModifier = func(hc *container.HostConfig) {
+			hc.Binds = []string{
+				fmt.Sprintf("%s:/app/coverage", coverageDir),
+			}
+		}
 	}
 
 	apiContainer, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
-		ContainerRequest: req,
+		ContainerRequest: *req,
 		Started:          true,
 	})
 	if err != nil {
@@ -69,9 +100,10 @@ func TestMain(m *testing.M) {
 	// run test suite
 	code := m.Run()
 
-	// teardown container
-	if err := apiContainer.Terminate(ctx); err != nil {
-		fmt.Println("Failed to terminate container:", err)
+	// teardown container gracefully -> allow dumpting of coverage data
+	gracePeriod := 1 * time.Second
+	if err = apiContainer.Terminate(ctx, tc.StopTimeout(gracePeriod)); err != nil {
+		fmt.Println("Failed to stop container:", err)
 	}
 
 	os.Exit(code)
@@ -155,4 +187,9 @@ func readBodyFrom(t *testing.T, resp *http.Response) (string, error) {
 	}
 
 	return strings.Trim(string(body), "\n"), nil
+}
+
+func isInstrumentationEnabled() bool {
+	value := os.Getenv("INSTRUMENT_BINARY")
+	return value == "true"
 }
