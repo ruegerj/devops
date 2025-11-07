@@ -7,7 +7,6 @@ type HighlightElementFunc = (element: HTMLElement) => void;
 export interface CodeJarOptions {
 	value: string;
 	syntax: string;
-	editorEnabled: boolean;
 	highlight: HighlightFunc;
 }
 
