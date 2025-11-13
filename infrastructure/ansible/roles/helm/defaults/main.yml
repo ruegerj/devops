@@ -1,4 +1,0 @@
----
-helm_arch: "amd64"
-helm_os: "linux"
-helm_install_dir: "/usr/local/bin"
