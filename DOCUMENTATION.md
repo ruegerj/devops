@@ -20,15 +20,26 @@ VMs:
 - [Project Idea & Tools](#project-idead--tools)
 - [Prerequisites & Setup](#prerequisites--setup)
   - [Local Workspace](#local-workspace)
+  - [Git Workflow](#git-workflow)
+  - [Docker Containers](#docker-containers)
 - [Applications](#applications)
   - [REST API](#rest-api)
   - [Web Frontend](#web-frontend)
 - [Pipelines](#pipelines)
   - [Continous Integration - API](#continous-integration---api)
   - [Continous Integration - Web](#continous-integration---web)
+  - [Continous Deployment](#continous-deployment)
+- [Secure Development Lifecycle](#secure-development-lifecycle)
+  - [Dependency Scanning](#dependency-scanning)
+  - [Code Analysis](#code-analysis)
+  - [Container Scanning](#container-scanning)
+  - [Credential Scanning](#credential-scanning)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
 
+External
+  - [SonarQube - API](https://sonarcloud.io/project/overview?id=ruegerj_devops_api)
+  - [SonarQube - Web](https://sonarcloud.io/project/overview?id=ruegerj_devops_web)
 
 ## Project Idea & Tools
 
@@ -42,15 +53,17 @@ Dummy app that displays some information fetched from a private REST api.
 
 **DevOps Features**
 
-- [ ] CI Pipeline (GitHub Actions)
+- [X] CI Pipeline (GitHub Actions)
     - [X] Build
     - [X] Lint
     - [X] Test
-    - [ ] Static Code Analysis (Snyk?)
+    - [X] Static Vulnerability Analysis (Snyk)
+    - [X] Static Code Quality / Test Coverage Analysis (SonarQube)
 
 - [ ] CD Pipeline (Github Actions)
     - [X] Build
     - [X] Docker Image Build
+    - [X] Image Scan (Snyk)
     - [X] Image Push (GitHub Container Registry)
     - [ ] (ArgoCD Sync)
 
@@ -86,6 +99,7 @@ Recommended but not mandatory:
 - [openssl](https://openssl-library.org/) (if you want to generate JWTs by hand)
 - [Vagrant](https://developer.hashicorp.com/vagrant)
 - [libvirt](https://libvirt.org/) (Presume you alread have a virtualization platform like QEMU)
+- [gocovmerge](https://pkg.go.dev/github.com/wadey/gocovmerge) (if you want to generate api test coverage reports)
 
 For starting the application locally, testing, linting, or any other automations [Task](taskfile.dev) is used as a modern cross-platform Make
 alternative. You can run task cmd's either in the repository root or in the dedicated subdirectories of the applications:
@@ -101,15 +115,30 @@ task run
 ```
 
 > All commands are written with unix systems in mind (Linux & Mac). If you are on Windows - try using a WSL instance if you are facing issues.
+
+### Git workflow
+
+The workflow should be pragmatic and enable productivity, however the following guardrails apply:
+
+- every meaningful change should be done in a dedicated feature branch
+- every feature branch should be either _squash-merged_ or _rebased_ back onto `main`
+- every meaningful change should be peer-review via pull-request
+- CI should be passing before a change gets onto `main`
+
 ### Docker Containers
 
-The release pipeline will build, tag and push two docker images to the GitHub Container Registry. One for the Backend and one for the frontend.   
+The release pipeline will build, tag and push two docker images to the GitHub Container Registry. One for the api and one for
+the web frontend:
+
+- [api:latest](https://github.com/ruegerj/devops/pkgs/container/devops%2Fapi)
+- [web:latest](https://github.com/ruegerj/devops/pkgs/container/devops%2Fweb)
+
 During the build process the JWT_KEY and matching ACCESS_TOKEN are injected as build arguments into the respective docker images.
 
 Note: JWT_KEY is defined as a github secret.
 
-**Running the containers**   
-- Backend  
+**Running the containers**
+- Backend
   - Forward port 3000 to the host system.
 - Frontend
   - Forward port 4173 to the host system.
@@ -209,6 +238,21 @@ task test:unit # unit tests only
 task test:e2e # e2e tests only
 ```
 
+**Coverage**
+
+In order to generate a test coverage report (and display it conditionally), use the following command:
+
+```bash
+task test:cov show=true
+```
+
+Both unit & e2e tests run with an instrumented go binary, that dumps it's coverage data on graceful shutdown. The instrumentation
+is performed by the go sdk itself. For the e2e testcontainer image the instrumentation is enabled using the environment variable
+_INSTRUMENT_BINARY_.
+
+The combined coverage report can be found in `bin/cov.out`. For CI runs this report is uploaded as artifact (_api-coverage-report_
+) and held for 7 days.
+
 ### Web Frontend
 
 The frontend is built using [SvelteKit](https://svelte.dev/docs/kit/introduction) as meta framework. It renders the UI and makes
@@ -274,6 +318,22 @@ task test:e2e # e2e tests only
 > pnpm dlx playwright install
 > ```
 
+**Coverage:**
+
+In order to generate a test coverage report (and display it conditionally), use the following command:
+
+```bash
+task test:cov show=true
+```
+
+Both unit & e2e tests use [istanbul](https://istanbul.js.org/) for instrumenting the build output for coverage data collection.
+The instrumentation is enabled using the environment variable _USE_PLUGIN_ISTANBUL_. For instrumenting the clientside files the
+standard [vite](https://vite.dev/) build is used (with the corresponding plugin). The serverside files are explicitly instrumented
+post-build using [babel](https://babeljs.io/). Their coverage is dumped uppon a graceful server shutdown.
+
+The combined coverage report can be found in `coverage/combined/lcov.info`. For CI runs this report is uploaded as artifact
+(_web-coverage-report_) and held for 7 days.
+
 ## Pipelines
 
 ### Continous Integration - API
@@ -289,12 +349,22 @@ flowchart LR
     lint(lint)
     test_unit(unit test)
     test_e2e(e2e test)
+    scan_code(scan code)
+    scan_deps(scan dependencies)
+    qa(quality assertion)
+    m( ):::empty
 
     trigger_push --> build
     trigger_pr --> build
     build --> lint
     build --> test_unit
     build --> test_e2e
+    lint --> m
+    test_unit --> m
+    test_e2e --> m
+    m --> scan_code
+    m --> scan_deps
+    m --> qa
 ```
 
 The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `api`
@@ -304,6 +374,11 @@ directory. It features the following steps:
 - **lint** - Statically checks the codebase for potential quality flaws using [golangci-lint](https://golangci-lint.run/)
 - **unit test** - runs all unit tests
 - **e2e test** - runs all e2e tests against a testcontainer instance of the app (see _Tests_ section of [API](#rest-api))
+- **scan code** - runs static vulnerability scans using [Snyk](https://snyk.io/)
+  -> results are uploaded as [GitHub code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts)
+- **scan dependencies** - runs analysis for vulnerable dependency versions using [Snyk](https://snyk.io)
+- **quality assertion** - collects test coverage and runs static code quality checks using [SonarQube](https://www.sonarsource.com/products/sonarqube/)
+  -> coverage report is uploaded as workflow artefact
 
 ### Continous Integration - Web
 
@@ -318,12 +393,22 @@ flowchart LR
     lint(lint)
     test_unit(unit test)
     test_e2e(e2e test)
+    scan_code(scan code)
+    scan_deps(scan dependencies)
+    qa(quality assertion)
+    m( ):::empty
 
     trigger_push --> build
     trigger_pr --> build
     build --> lint
     build --> test_unit
     build --> test_e2e
+    lint --> m
+    test_unit --> m
+    test_e2e --> m
+    m --> scan_code
+    m --> scan_deps
+    m --> qa
 ```
 
 The pipeline runs for every _push_ and _pull request_ targeting the `main` branch, which is holding changes in the `web`
@@ -334,6 +419,88 @@ directory. It features the following steps:
 linter. Additionaly it checks the format of every file using [prettier](https://prettier.io/).
 - **unit test** - runs all unit tests using [vitest](https://vitest.dev)
 - **e2e test** - runs all e2e tests using [Playwright](https://playwright.dev/) (see _Tests_ section of [Web](#web-frontent))
+- **scan code** - runs static vulnerability scans using [Snyk](https://snyk.io/)
+  -> results are uploaded as [GitHub code scanning alerts](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts)
+- **scan dependencies** - runs analysis for vulnerable dependency versions using [Snyk](https://snyk.io)
+- **quality assertion** - collects test coverage and runs static code quality checks using [SonarQube](https://www.sonarsource.com/products/sonarqube/)
+  -> coverage report is uploaded as workflow artefact
+
+
+### Continous Deployment
+
+```mermaid
+---
+title: CD
+---
+flowchart TD
+    trigger_tag[/tag 'x.x.x'/]
+    trigger_manual[/manual/]
+    build_api(build api)
+    build_web(build web)
+    lint_api(lint api)
+    lint_web(lint web)
+    test_unit_api(unit test api)
+    test_e2e_api(e2e test api)
+    test_unit_web(unit test web)
+    test_e2e_web(e2e test web)
+    scan_code_api(scan code api)
+    scan_code_web(scan code web)
+
+    trigger_tag --> build_api
+    trigger_tag --> build_web
+    trigger_manual --> build_api
+    trigger_manual --> build_web
+    build_api --> lint_api
+    build_api --> test_unit_api
+    build_api --> test_e2e_api
+    build_web --> lint_web
+    build_web --> test_unit_web
+    build_web --> test_e2e_web
+    lint_api --> scan_code_api
+    test_unit_api --> scan_code_api
+    test_e2e_api --> scan_code_api
+    lint_web --> scan_code_web
+    test_unit_web --> scan_code_web
+    test_e2e_web --> scan_code_web
+    scan_code_api --> docker_build_api
+    scan_code_web --> docker_build_api
+
+    subgraph docker_build_scan_push [ Build, Scan & Push Images]
+        direction LR
+
+        docker_build_api(docker build api)
+        docker_build_web(docker build web)
+        image_scan_api(scan image api)
+        image_scan_web(scan image web)
+        image_push_api(push image api)
+        image_push_web(push image web)
+
+        docker_build_api --> image_scan_api
+        image_scan_api --> docker_build_web
+        docker_build_web --> image_scan_web
+        image_scan_web --> image_push_api
+        image_push_api --> image_push_web
+    end
+```
+
+The pipeline runs for every created tag (`x.x.x`). It runs all steps from the CI-piplines of both applications (see corresponding
+chapters for more details) in parallel in  order to ensure the codebase is in a sane state. Afterwards the following steps are
+executed to create, scan & deploy the Docker images for the new release:
+
+- **docker build api** - builds the Docker image for the api backend
+  -> secrets are injected into the image using build args
+- **scan image api** - scans the freshly built api image using [Snyk](https://snyk.io)
+- **docker build web** - builds the Docker image for the web frontend
+  -> secrets are injected into the image using build args
+- **scan image web** - scans the freshly built web image using [Snyk](https://snyk.io)
+- **push image api** - pushes the api image to the [GitHub container registry](https://github.com/ruegerj/devops/pkgs/container/devops%2Fapi)
+  -> the image is taged with the version from the git tag & `latest`
+- **push image web** - pushes the web image to the [GitHub container registry](https://github.com/ruegerj/devops/pkgs/container/devops%2Fapi)
+  -> the image is taged with the version from the git tag & `latest`
+
+> [!NOTE]
+> Due to some reliability issues, SonarQube analyses are excluded from the CD pipeline so that they do not block deployments.
+
 
 ### Continous Integration - Infrastructure
 Upon every _push_ or _pull request_ targeting the `main` branch, a static linter (ansible-lint) is run against all Ansible playbooks, detecting potential formatting issues and quality flaws.
@@ -450,6 +617,43 @@ task infra:stage:down
 ### Workload deployment via ArgoCD
 After initial infrastructure setup via Ansible, ArgoCD is used inorder to deploy K3s cluster workloads.
 lorem ipsum
+## Secure Development Lifecycle
+
+In order to create a complete _Secure Development Lifecyle (SDLC)_ the platform [Snyk](https://snyk.io) is used in combination with
+GitHub. Within GitHub all security findings of Snyk are pushed to the [Code Scanning](https://docs.github.com/en/code-security/code-scanning/managing-code-scanning-alerts/about-code-scanning-alerts) platform.
+
+### Dependency Scanning
+
+Runs in CI-pipelines for [web](#continous-integration---web) & [api](#continous-integration---api)
+
+In order to scan for vulnerable dependencies [Snyk Open Source](https://snyk.io/product/open-source-security-management/) is used.
+It scans the the _pnpm-lock.yaml_ (for web) and the _go.mod_ (for api) for dependency version that have reported vulnerabilites. When vulnerable dependencies are found, the workflow fails in order to prevent them getting used for a release. To handle false
+positives or vulnerabilites that don't have to be fixed immediately - time based ignore rules can be configured using the [Snyk CLI](https://docs.snyk.io/developer-tools/snyk-cli/scan-and-maintain-projects-using-the-cli/ignore-vulnerabilities-using-the-snyk-cli).
+
+### Code Analysis
+
+Runs in CI-pipelines for [web](#continous-integration---web) & [api](#continous-integration---api)
+
+In order to statically analyse (SAST) the code for vulnerabilites [Snyk Code](https://snyk.io/product/snyk-code/) is used. To define
+app specific path exclusions (e.g. test files) a _.snyk_ file in the respective subfolder is used - either by hand or using the
+[Snyk CLI](https://docs.snyk.io/developer-tools/snyk-cli/scan-and-maintain-projects-using-the-cli/snyk-cli-for-snyk-code/exclude-directories-and-files-from-snyk-code-cli-tests).
+Due to the semantic code analysis of Snyk findings cannot simply be ignored using a specific comment. When faced with false
+positives use the [web-app](https://app.snyk.io) to ignore them properly.
+
+### Container Scanning
+
+Runs in [CD-pipeline](#continous-integration)
+
+In order to scan the docker images for vulnerabilites [Snyk Container](https://snyk.io/product/container-vulnerability-management/)
+is used. It scans the freshly built docker images for _web_ & _api_ as well as the base-images (e.g. the respective _Dockerfile_). The scan results are not pushed to GitHub, however the pipeline is failed in order to prevent potentially vulnerable images going
+being released.
+
+### Credential Scanning
+
+In order to ensure that no credentials are checked-in into the source code, the GitHub app
+[GitGuardian](https://www.gitguardian.com/) is used. It will block any commit holding hardcoded credentials (until eventually
+remediated or flagged as false-positive)
+
 
 ## Miscellaneous
 

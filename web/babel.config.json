@@ -1,0 +1,11 @@
+{
+	"presets": [["@babel/preset-typescript", { "allowDeclareFields": true }]],
+	"plugins": [
+		[
+			"istanbul",
+			{
+				"exclude": ["**/*.spec.ts", "**/*.test.ts", "src/lib/components/ui/*", "e2e/**"]
+			}
+		]
+	]
+}

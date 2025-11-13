@@ -41,7 +41,7 @@
 					<p class="text-gray-500" data-test="locked-info">Open it up to see its contents...</p>
 				{:else}
 					<div data-test="code-container">
-						<CodeJar class="bg-card" code={secretContent} enabled={false} />
+						<CodeJar class="bg-card" code={secretContent} />
 					</div>
 				{/if}
 			</Card.Content>

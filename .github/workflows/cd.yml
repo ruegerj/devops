@@ -1,0 +1,127 @@
+name: CD
+on:
+  push:
+    tags:
+      - "*.*.*" # release tags like 1.2.3
+  workflow_dispatch:
+
+env:
+  RC_TAG_API: api:${{ github.ref_name }}-rc
+  RC_TAG_WEB: web:${{ github.ref_name }}-rc
+
+jobs:
+  build-api:
+    uses: ./.github/workflows/build-api.yaml
+  build-web:
+    uses: ./.github/workflows/build-web.yaml
+  lint-api:
+    uses: ./.github/workflows/lint-api.yaml
+    needs: [build-api]
+  lint-web:
+    uses: ./.github/workflows/lint-web.yaml
+    needs: [build-web]
+  test-api:
+    uses: ./.github/workflows/test-api.yaml
+    needs: [build-api]
+  test-web:
+    uses: ./.github/workflows/test-web.yaml
+    needs: [build-web]
+  scan-api:
+    uses: ./.github/workflows/scan-api.yaml
+    needs: [lint-api, test-api]
+    secrets: inherit
+  scan-web:
+    uses: ./.github/workflows/scan-web.yaml
+    needs: [lint-web, test-web]
+    secrets: inherit
+  docker:
+    name: Build, Scan & Push Docker Images
+    needs: [scan-api, scan-web]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-task@v1
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate JWT Token
+        id: genjwt
+        working-directory: ./api
+        env:
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+        run: |
+          ACCESS_TOKEN=$(task generate:jwt)
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+      - name: "Build Docker Image (API)"
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          file: ./api/Dockerfile
+          load: true # load image into actions docker context for later use in pipeline
+          build-args: |
+            JWT_KEY=${{ secrets.JWT_KEY }}
+          tags: ${{ env.RC_TAG_API }}
+
+      - name: Scan Image (API)
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.RC_TAG_API }}
+          command: container test
+          args: --policy-path=api --file=api/Dockerfile
+
+      - name: "Build Docker Image (Web)"
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          load: true # load image into actions docker context for later use in pipeline
+          build-args: |
+            ACCESS_TOKEN=${{ env.ACCESS_TOKEN }}
+            API_BASE_URL=${{ vars.API_BASE_URL }}
+          tags: ${{ env.RC_TAG_WEB }}
+
+      - name: Scan Image (Web)
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.RC_TAG_WEB }}
+          command: container test
+          args: --policy-path=web --file=web/Dockerfile
+
+      # action does not rebuild the image - cache from the previous build step is used
+      - name: "Push Image (API)"
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          file: ./api/Dockerfile
+          push: true
+          build-args: |
+            JWT_KEY=${{ secrets.JWT_KEY }}
+          tags: |
+            ghcr.io/${{ github.repository }}/api:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/api:latest
+
+      # action does not rebuild the image - cache from the previous build step is used
+      - name: "Push Image (Web)"
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: true
+          build-args: |
+            ACCESS_TOKEN=${{ env.ACCESS_TOKEN }}
+            API_BASE_URL=${{ vars.API_BASE_URL }}
+          tags: |
+            ghcr.io/${{ github.repository }}/web:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/web:latest

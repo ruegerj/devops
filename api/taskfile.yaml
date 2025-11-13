@@ -35,6 +35,19 @@ tasks:
     cmds:
       - go test -v -tags e2e ./tests/e2e/...
 
+  test:cov:
+    desc: Runs all tests of the project, measuring their coverage
+    env:
+      INSTRUMENT_BINARY: true
+    cmds:
+      - mkdir -p bin
+      - mkdir -p bin/coverage
+      - go test -coverprofile bin/cov_unit.out ./...
+      - go test -v -tags e2e ./tests/e2e/...
+      - go tool covdata textfmt -i=bin/coverage -o=bin/cov_e2e.out
+      - gocovmerge bin/cov_unit.out bin/cov_e2e.out > bin/cov.out
+      - if [ "{{.show | default `false`}}" = "true" ]; then go tool cover -html=bin/cov.out; fi
+
   generate:env:
     desc: Generates a .env file holding all relevant options for a local workspace
     cmds:
