@@ -23,23 +23,22 @@
   hosts: mgmt
   become: true
   tasks:
-    - name: Remove Helm 
+    - name: Remove Helm
       ansible.builtin.file:
         path: /usr/local/bin/helm # TODO make dynamic
         state: absent
-    
+
     - name: Remove Kubectl
       ansible.builtin.file:
-        path: /usr/local/bin/kubectl #TODO make dynamic
+        path: /usr/local/bin/kubectl # TODO make dynamic
         state: absent
 
     - name: Remove Kube config
       ansible.builtin.file:
         path: /home/{{ kubeconfig_user }}/.kube
         state: absent
-    
+
     - name: Remove venv
       ansible.builtin.file:
         path: "{{ k3s_ansible_venv_path }}"
         state: absent
-
