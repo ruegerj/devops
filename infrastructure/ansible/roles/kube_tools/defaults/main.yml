@@ -1,0 +1,6 @@
+---
+kube_tools_helm_install_dir: "/usr/local/bin"
+kube_tools_kubectl_install_dir: "/usr/local/bin"
+
+kube_tools_kubeconfig_src_path: "/etc/rancher/k3s/k3s.yaml"
+kube_tools_kubeconfig_dest_path: "/home/{{ kubeconfig_user }}/.kube"

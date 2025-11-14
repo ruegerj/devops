@@ -7,3 +7,6 @@ includes:
   web:
     taskfile: ./web/taskfile.yaml
     dir: ./web
+  infra: 
+    taskfile: ./infrastructure/taskfile.yaml
+    dir: ./infrastructure

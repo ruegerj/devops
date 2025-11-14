@@ -1,0 +1,44 @@
+---
+# Destroy Cluster Resources & Uninstall K3s Cluster
+- name: Install K3s cluster
+  ansible.builtin.import_playbook: k3s.orchestration.reset
+
+# Uninstall HAProxy
+- name: Uninstall HAProxy
+  hosts: loadbalancer
+  become: true
+  tasks:
+    - name: Remove HAProxy package
+      ansible.builtin.package:
+        name: haproxy
+        state: absent
+
+    - name: Remove HAProxy configuration
+      ansible.builtin.file:
+        path: /etc/haproxy
+        state: absent
+
+# CleanUp management system
+- name: CleanUp management system
+  hosts: mgmt
+  become: true
+  tasks:
+    - name: Remove Helm
+      ansible.builtin.file:
+        path: /usr/local/bin/helm # TODO make dynamic
+        state: absent
+
+    - name: Remove Kubectl
+      ansible.builtin.file:
+        path: /usr/local/bin/kubectl # TODO make dynamic
+        state: absent
+
+    - name: Remove Kube config
+      ansible.builtin.file:
+        path: /home/{{ kubeconfig_user }}/.kube
+        state: absent
+
+    - name: Remove venv
+      ansible.builtin.file:
+        path: "{{ k3s_ansible_venv_path }}"
+        state: absent
