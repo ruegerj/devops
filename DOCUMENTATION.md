@@ -557,6 +557,7 @@ flowchart TD
     staging_inventory[staging.yml]
     production_inventory[production.yml]
     site[/site.yml/]
+    prune[/prune.yml/]
     k3s-ansible[/k3s-ansible.yml/]
     argocd(argocd)
     haproxy(haproxy)
@@ -566,16 +567,18 @@ flowchart TD
 
     staging_inventory --> site
     production_inventory --> site
+    staging_inventory --> prune
+    production_inventory --> prune
     site --> haproxy
     site --> k3s-ansible
     site --> kube_tools
     site --> argocd
-
 ```
 
 - **staging.yml** - inventory for staging environment
 - **production.yml** - inventory for production environment
 - **site.yml** - main playbook orchestrating the provisioning
+- **prune.yml** - playbook for uninstalling all ressources
 - **haproxy** - role responsible for installing and configuring haproxy
 - **k3s-ansible** - imported playbook from [k3s-ansible](https://github.com/k3s-io/k3s-ansible) responsible for provisioning the K3s HA cluster
 - **kube_tools** - role for setting up [kubectl](https://kubernetes.io/docs/reference/kubectl/), [helm](https://helm.sh/) aswell as the needed Python libraries for ansible to interact with the K3s cluster

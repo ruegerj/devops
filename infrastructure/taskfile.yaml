@@ -45,6 +45,14 @@ tasks:
     cmds:
       - ansible-playbook ansible/site.yml -i ansible/staging.yml --extra-vars "token=$(echo $TOKEN)"
 
+  stage:prune:
+    desc: Run the uninstall plabook against staging environment without destroying VMs
+    dotenv: [.env]
+    preconditions:
+      - ansible --version
+    cmds:
+      - ansible-playbook ansible/prune.yml -i ansible/staging.yml --extra-vars "token=$(echo $TOKEN)"
+
   stage:down:
     desc: Removes staging environment
     preconditions:
