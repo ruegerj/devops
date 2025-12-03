@@ -25,5 +25,5 @@ spec:
             configMapKeyRef:
               name: app-configmap
               key: api_base_url
-      imagePullSecret:
+      imagePullSecrets:
         - name: ghcr
