@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-frontend-service
+  labels:
+    app: app-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: app-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 4173
+      name: http
