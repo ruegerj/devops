@@ -580,7 +580,9 @@ flowchart TD
 ```
 
 - **staging.yml** - inventory for staging environment
-- **production.yml** - inventory for production environment
+- **inventories/prod** - inventory for production environment
+  - **hosts.yml** - all hosts with information to find the correct ssh-keys
+  - **groups.yml** - group to hosts in hosts.yml (seperated for easier management)
 - **site.yml** - main playbook orchestrating the provisioning
 - **prune.yml** - playbook for uninstalling all ressources
 - **haproxy** - role responsible for installing and configuring haproxy
