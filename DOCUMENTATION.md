@@ -590,6 +590,19 @@ flowchart TD
 - **kube_tools** - role for setting up [kubectl](https://kubernetes.io/docs/reference/kubectl/), [helm](https://helm.sh/) aswell as the needed Python libraries for ansible to interact with the K3s cluster
 - **argocd** - role for deploying [argo-cd](https://argo-cd.readthedocs.io/en/stable/) to the K3s cluster
 
+> Note: Every host needs to have a user ansible with root privileges and a ssh key stored on the mgmt server to connect to the given host. 
+```
+ansible@srv-001:~/.ssh$
+.ssh/
+├── ansible@srv-019
+├── ansible@srv-019.pub
+├── ansible@srv-022
+├── ansible@srv-022.pub
+├── ansible@srv-023
+├── ansible@srv-023.pub
+└── known_hosts
+```
+
 **Tests:**
 
 For e2e testing of the Ansible playbooks a staging environment using [Vagrant](https://developer.hashicorp.com/vagrant) VMs can be deployed locally.
