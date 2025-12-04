@@ -17,7 +17,7 @@ backend k3s-backend
     balance roundrobin
     default-server inter 10s downinter 5s
 {% for node in groups['server'] %}
-    server node-{{ loop.index }} {{ hostvars[node]['ansible_host'] | default(node) }}:{{ api_port | default('6443') }} check
+    server {{ node }} {{ hostvars[node]['ansible_default_ipv4']['address'] }}:{{ api_port | default('6443') }} check
 {% endfor %}
 
 # Frontend for HTTPS (TLS passthrough)
@@ -38,7 +38,7 @@ backend k3s-nodes-https
     balance roundrobin
     option tcp-check
 {% for node in groups['server'] %}
-    server node-{{ loop.index }} {{ hostvars[node]['ansible_host'] | default(node) }}:443 check
+    server {{ node }} {{ hostvars[node]['ansible_default_ipv4']['address'] }}:443 check
 {% endfor %}
 
 # Backend for HTTP
@@ -47,5 +47,5 @@ backend k3s-nodes-http
     balance roundrobin
     option tcp-check
 {% for node in groups['server'] %}
-    server node-{{ loop.index }} {{ hostvars[node]['ansible_host'] | default(node) }}:80 check
+    server {{ node }} {{ hostvars[node]['ansible_default_ipv4']['address'] }}:80 check
 {% endfor %}

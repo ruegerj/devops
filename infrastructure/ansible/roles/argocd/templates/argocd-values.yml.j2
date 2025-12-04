@@ -17,3 +17,9 @@ server:
     hosts:
       - host: {{ argocd_url }}
     tls: true
+
+    extraTls:
+      - hosts:
+        - argo.g08.local
+        # Based on the ingress controller used secret might be optional
+
