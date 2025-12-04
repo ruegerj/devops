@@ -35,7 +35,7 @@ tasks:
     cmds:
       - vagrant up
       - ansible-galaxy install -r ansible/requirements.yml
-      - ansible-playbook ansible/site.yml -i ansible/staging.yml --extra-vars "token=$(echo $TOKEN)"
+      - ansible-playbook ansible/site.yml -i ansible/inventories/staging --extra-vars "token=$(echo $TOKEN)"
 
   stage:rerun:
     desc: Reruns playbooks against existing staging environment
@@ -43,7 +43,7 @@ tasks:
     preconditions:
       - ansible --version
     cmds:
-      - ansible-playbook ansible/site.yml -i ansible/staging.yml --extra-vars "token=$(echo $TOKEN)"
+      - ansible-playbook ansible/site.yml -i ansible/inventories/staging --extra-vars "token=$(echo $TOKEN)"
 
   stage:prune:
     desc: Run the uninstall plabook against staging environment without destroying VMs
@@ -51,7 +51,7 @@ tasks:
     preconditions:
       - ansible --version
     cmds:
-      - ansible-playbook ansible/prune.yml -i ansible/staging.yml --extra-vars "token=$(echo $TOKEN)"
+      - ansible-playbook ansible/prune.yml -i ansible/inventories/staging --extra-vars "token=$(echo $TOKEN)"
 
   stage:down:
     desc: Removes staging environment
