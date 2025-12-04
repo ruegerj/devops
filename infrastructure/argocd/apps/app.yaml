@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/ruegerj/devops  
     targetRevision: feature/argo-app-deployment
-    path: infrastructure/deployment 
+    path: infrastructure/argocd/deployment 
     directory:
       recurse: true
 
