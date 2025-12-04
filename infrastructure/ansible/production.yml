@@ -1,23 +1,24 @@
 ---
 # PRODUCTION INVENTORY
 all:
-  vars:
-    ansible_user: labadmin
-    ansible_become_pass: CHANGE_ME
-    ansible_ssh_private_key_file: /home/labadmin/.ssh/id_jump
-
-mgmt:
   hosts:
     srv-001.devops.ls.eee.intern:
-k3s_cluster:
-  children:
-    loadbalancer:
-      hosts:
-        srv-001.devops.ls.eee.intern:
-    server:
-      hosts:
-        srv-019.devops.ls.eee.intern:
-        srv-022.devops.ls.eee.intern:
-        srv-023.devops.ls.eee.intern:
-    agent:
-      hosts:
+      ansible_connection: local
+      ansible_user: ansible
+
+    srv-019.devops.ls.eee.intern:
+      ansible_host: srv-019.devops.ls.eee.intern
+      ansible_user: ansible
+      ansible_ssh_private_key_file: /home/ansible/.ssh/ansible@srv-019
+
+    srv-022.devops.ls.eee.intern:
+      ansible_host: srv-022.devops.ls.eee.intern
+      ansible_user: ansible
+      ansible_ssh_private_key_file: /home/ansible/.ssh/ansible@srv-022
+
+    srv-023.devops.ls.eee.intern:
+      ansible_host: srv-023.devops.ls.eee.intern
+      ansible_user: ansible
+      ansible_ssh_private_key_file: /home/ansible/.ssh/ansible@srv-023
+
+
