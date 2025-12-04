@@ -555,7 +555,9 @@ title: Ansible overview
 ---
 flowchart TD
     staging_inventory[staging.yml]
-    production_inventory[production.yml]
+    production_hosts[/hosts.yml/]
+    production_groups[/groups.yml/]
+    production_inventory[inventories/prod]
     site[/site.yml/]
     prune[/prune.yml/]
     k3s-ansible[/k3s-ansible.yml/]
@@ -566,6 +568,8 @@ flowchart TD
 
 
     staging_inventory --> site
+    production_inventory --> production_hosts
+    production_inventory --> production_groups
     production_inventory --> site
     staging_inventory --> prune
     production_inventory --> prune
