@@ -554,7 +554,9 @@ The diagram below gives quick overview of the playbook used for provisioning:
 title: Ansible overview
 ---
 flowchart TD
-    staging_inventory[staging.yml]
+    staging_hosts[/hosts.yml/]
+    staging_groups[/groups.yml/]
+    staging_inventory[inventories/staging]
     production_hosts[/hosts.yml/]
     production_groups[/groups.yml/]
     production_inventory[inventories/prod]
@@ -567,6 +569,8 @@ flowchart TD
 
 
 
+    staging_inventory --> staging_hosts
+    staging_inventory --> staging_groups
     staging_inventory --> site
     production_inventory --> production_hosts
     production_inventory --> production_groups
@@ -579,10 +583,12 @@ flowchart TD
     site --> argocd
 ```
 
-- **staging.yml** - inventory for staging environment
+- **inventories/staging** - inventory for staging environment
+  - **hosts.yml** - all hosts
+  - **groups.yml** - groups to hosts in hosts.yml (seperated for easier management)
 - **inventories/prod** - inventory for production environment
   - **hosts.yml** - all hosts with information to find the correct ssh-keys
-  - **groups.yml** - group to hosts in hosts.yml (seperated for easier management)
+  - **groups.yml** - groups to hosts in hosts.yml (seperated for easier management)
 - **site.yml** - main playbook orchestrating the provisioning
 - **prune.yml** - playbook for uninstalling all ressources
 - **haproxy** - role responsible for installing and configuring haproxy
@@ -614,7 +620,7 @@ ansible@srv-001:~/.ssh$
 └── known_hosts
 ```
 
-**Tests:**
+#### Tests
 
 For e2e testing of the Ansible playbooks a staging environment using [Vagrant](https://developer.hashicorp.com/vagrant) VMs can be deployed locally.
 
@@ -645,6 +651,20 @@ After finishing testing or if a new testrun with clean VMs is desired, the exist
 
 ```bash
 task infra:stage:down
+```
+
+#### Deploy PROD
+
+```
+# connect to labadmin@srv-001.devops.ls.eee.intern
+
+# labadmin@srv-001:~$ alias sua
+# alias sua='sudo /bin/su ansible'
+labadmin@srv-001:~$ sua
+
+ansible@srv-001:~$ cd /home/ansible/ansible
+
+ansible-playbook -i inventories/prod site.yml
 ```
 
 ### Workload deployment via ArgoCD
