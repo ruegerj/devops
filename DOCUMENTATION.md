@@ -590,7 +590,18 @@ flowchart TD
 - **kube_tools** - role for setting up [kubectl](https://kubernetes.io/docs/reference/kubectl/), [helm](https://helm.sh/) aswell as the needed Python libraries for ansible to interact with the K3s cluster
 - **argocd** - role for deploying [argo-cd](https://argo-cd.readthedocs.io/en/stable/) to the K3s cluster
 
-> Note: Every host needs to have a user ansible with root privileges and a ssh key stored on the mgmt server to connect to the given host. 
+#### SSH Setup
+
+Every host needs to have a dedicated user ansible with root privileges and a ssh key stored on the mgmt server to connect to the given host. Every host in ```inventories/prod/hosts.yml``` is linked with it's ssh key file.
+
+```
+all:
+    srv-019.devops.ls.eee.intern:
+      ansible_host: srv-019.devops.ls.eee.intern
+      ansible_user: ansible
+      ansible_ssh_private_key_file: /home/ansible/.ssh/ansible@srv-019
+```
+
 ```
 ansible@srv-001:~/.ssh$
 .ssh/
