@@ -1,26 +1,16 @@
-all:
-  vars:
-    ansible_user: vagrant
-    ansible_ssh_private_key_file: ./id_vagrant
-    ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-
 mgmt:
   hosts:
     192.168.122.10:
 
-loadbalancer:
-  hosts:
-    192.168.122.10:
-
-server:
-  hosts:
-    192.168.122.11:
-    192.168.122.12:
-    192.168.122.13:
-  vars:
-    server_config_yaml: |-
-      node-ip: {{ ansible_host }}
-      node-external-ip: {{ ansible_host }}
-
-agent:
-  hosts: {}
+k3s_cluster:
+  children:
+    loadbalancer:
+      hosts:
+        192.168.122.10:
+    server:
+      hosts:
+        192.168.122.11:
+        192.168.122.12:
+        192.168.122.13:
+    agent:
+      hosts: {}
