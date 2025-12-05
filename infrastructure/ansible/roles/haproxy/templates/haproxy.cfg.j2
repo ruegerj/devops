@@ -1,0 +1,51 @@
+defaults
+    timeout client 10s
+    timeout connect 5s
+    timeout server 10s
+
+# Frontend for kubernetes API   
+frontend k3s-frontend
+    bind *:{{ api_port | default('6443') }}
+    mode tcp
+    option tcplog
+    default_backend k3s-backend
+
+# Backend for kubernetes API 
+backend k3s-backend
+    mode tcp
+    option tcp-check
+    balance roundrobin
+    default-server inter 10s downinter 5s
+{% for node in groups['server'] %}
+    server {{ node }} {{ hostvars[node]['ansible_default_ipv4']['address'] }}:{{ api_port | default('6443') }} check
+{% endfor %}
+
+# Frontend for HTTPS (TLS passthrough)
+frontend k3s-https
+    bind *:443
+    mode tcp
+    default_backend k3s-nodes-https
+
+# Frontend for HTTP 
+frontend k3s-http
+    bind *:80
+    mode tcp
+    default_backend k3s-nodes-http
+
+# Backend for HTTPS
+backend k3s-nodes-https
+    mode tcp
+    balance roundrobin
+    option tcp-check
+{% for node in groups['server'] %}
+    server {{ node }} {{ hostvars[node]['ansible_default_ipv4']['address'] }}:443 check
+{% endfor %}
+
+# Backend for HTTP
+backend k3s-nodes-http
+    mode tcp
+    balance roundrobin
+    option tcp-check
+{% for node in groups['server'] %}
+    server {{ node }} {{ hostvars[node]['ansible_default_ipv4']['address'] }}:80 check
+{% endfor %}

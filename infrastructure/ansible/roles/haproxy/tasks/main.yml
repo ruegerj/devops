@@ -1,0 +1,51 @@
+---
+- name: Ensure directory for APT keyrings exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Download HAProxy archive keyring
+  ansible.builtin.get_url:
+    url: "{{ haproxy_repo_key_url }}"
+    dest: "{{ haproxy_repo_key_path }}"
+    mode: "0644"
+
+- name: Add HAProxy APT repository
+  ansible.builtin.copy:
+    dest: "{{ haproxy_repo_list_path }}"
+    content: |
+      deb [signed-by={{ haproxy_repo_key_path }}] {{ haproxy_repo_url }} {{ haproxy_repo_distribution }}-{{ haproxy_version }} {{ haproxy_repo_component }}
+    mode: "0644"
+
+- name: Update APT cache
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install HAProxy version {{ haproxy_version }}
+  become: true
+  ansible.builtin.apt:
+    name: "haproxy={{ haproxy_version }}.*"
+    state: present
+    update_cache: true
+
+- name: Gather facts for K3s server nodes
+  ansible.builtin.setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['server'] }}"
+
+- name: Copy HAProxy config
+  ansible.builtin.template:
+    src: "haproxy.cfg.j2"
+    dest: "/etc/haproxy/haproxy.cfg"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure HAProxy service is enabled and started
+  ansible.builtin.service:
+    name: haproxy
+    state: restarted
+    enabled: true

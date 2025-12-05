@@ -1,0 +1,25 @@
+global:
+  domain: {{ argocd_url }}
+
+configs:
+  params:
+    server.insecure: true
+    
+server:
+  service:
+    type: ClusterIP   
+  ingress:
+    enabled: true
+    ingressClassName: traefik  
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+      - host: {{ argocd_url }}
+    tls: true
+
+    extraTls:
+      - hosts:
+        - argo.g08.local
+        # Based on the ingress controller used secret might be optional
+
