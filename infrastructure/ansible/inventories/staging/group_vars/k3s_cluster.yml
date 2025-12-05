@@ -10,7 +10,8 @@ argocd_url: "argo.g08.local"
 
 server_config_yaml: |-
   node-ip: {{ ansible_host }}
-  node-external-ip: {{ ansible_host }} 
+  node-external-ip: {{ ansible_host }}
+
 # Optional vars
 # extra_server_args: ""
 # extra_agent_args: ""
