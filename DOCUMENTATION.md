@@ -29,6 +29,12 @@ VMs:
   - [Continous Integration - API](#continous-integration---api)
   - [Continous Integration - Web](#continous-integration---web)
   - [Continous Deployment](#continous-deployment)
+- [Infrastructure](#infrastructure)
+  - [Network Access for Github Actions](#network-access-for-github-actions)
+  - [Automated infrastructure deployment via Ansible](#automated-infrastructure-deployment-via-ansible)
+    - [SSH Setup](#ssh-setup)
+    - [Tests](#tests)
+    - [Deploy PROD](#deploy-prod)
 - [Secure Development Lifecycle](#secure-development-lifecycle)
   - [Dependency Scanning](#dependency-scanning)
   - [Code Analysis](#code-analysis)
@@ -654,12 +660,14 @@ task infra:stage:down
 ```
 
 #### Deploy PROD
+In order to deploy the production environment, this repository was cloned to srv-001.devops.ls.eee.intern and the ansible `site.yaml` playbook executed against it.
 
-```
+```bash
 # connect to labadmin@srv-001.devops.ls.eee.intern
 
 # labadmin@srv-001:~$ alias sua
 # alias sua='sudo /bin/su ansible'
+
 labadmin@srv-001:~$ sua
 
 ansible@srv-001:~$ cd /home/ansible/ansible
