@@ -11,7 +11,7 @@ argocd_url: "argo.g08.local"
 server_config_yaml: |-
   node-ip: {{ ansible_host }}
   node-external-ip: {{ ansible_host }}
-  
+ 
 # Optional vars
 # extra_server_args: ""
 # extra_agent_args: ""
@@ -40,4 +40,3 @@ server_config_yaml: |-
 #   Containerd can be configured to connect to private registries and use them to pull images as needed by the kubelet.
 #   YAML here will be placed as the content of /etc/rancher/k3s/registries.yaml
 #   See https://docs.k3s.io/installation/private-registry
-
