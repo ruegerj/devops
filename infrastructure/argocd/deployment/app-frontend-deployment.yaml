@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-frontend-deployment
+  labels:
+    app: app-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-frontend
+  template:
+    metadata:
+      labels:
+        app: app-frontend
+    spec:
+      containers:
+      - name: app-frontend
+        image: ghcr.io/ruegerj/devops/web
+        ports:
+        - containerPort: 4173
+        env:
+        - name: API_BASE_URL
+          valueFrom: 
+            configMapKeyRef:
+              name: app-configmap
+              key: api_base_url
+      imagePullSecrets:
+        - name: ghcr
