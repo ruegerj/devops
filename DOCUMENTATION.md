@@ -676,8 +676,19 @@ ansible-playbook -i inventories/prod site.yml
 ```
 
 ### Workload deployment via ArgoCD
-After initial infrastructure setup via Ansible, ArgoCD is used inorder to deploy K3s cluster workloads.
-lorem ipsum
+Workloads are deployed to the K3s cluster using argocd with a GitOps approach.
+The ArgoCD dashboard can be reached within the HSLU network via [https://argo.g08.local](https://argo.g08.local)
+
+> [!NOTE] 
+> In order to access access the Web-UIs deployed in this project please add the following lines to your hosts file: 
+> - **Unix (etc/hosts)**
+> - **Windows (C:\Windows\System32\drivers\etc\hosts)**
+> 10.176.137.103 argo.g08.local
+> 10.176.137.103 app.g08.local
+
+### App of Apps pattern
+Within ArgoCD the [App of Apps Pattern](https://argo-cd.readthedocs.io/en/latest/operator-manual/cluster-bootstrapping/) is used to create a cascading rollout of all cluster objects.
+
 ## Secure Development Lifecycle
 
 In order to create a complete _Secure Development Lifecyle (SDLC)_ the platform [Snyk](https://snyk.io) is used in combination with
