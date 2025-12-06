@@ -682,8 +682,8 @@ The ArgoCD dashboard can be reached within the HSLU network via [https://argo.g0
 > [!NOTE] 
 > In order to access access the Web-UIs deployed in this project please add the following lines to your hosts file: 
 > - **Unix (etc/hosts)**
-> - **Windows (C:\Windows\System32\drivers\etc\hosts)**
-> 10.176.137.103 argo.g08.local
+> - **Windows (C:\Windows\System32\drivers\etc\hosts)** \
+> 10.176.137.103 argo.g08.local \
 > 10.176.137.103 app.g08.local
 
 ### App of Apps pattern
