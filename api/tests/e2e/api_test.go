@@ -113,6 +113,7 @@ func TestMain(m *testing.M) {
 func TestHealthEndpoint(t *testing.T) {
 	// WHEN
 	resp, err := http.Get(fmt.Sprintf("%s/health", apiBaseURL))
+	defer resp.Body.Close()
 
 	// THEN
 	require.NoError(t, err, "request must succeed")
