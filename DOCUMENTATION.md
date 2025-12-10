@@ -76,6 +76,7 @@ Dummy app that displays some information fetched from a private REST api.
 
 - [X] K8S or K3S Hosting
 - [X] ArgoCD for Deployments
+- [X] OTEL app metrics (Prometheus)
 - [ ] Credential Vault (Hashicorp Vault?)
 - [X] SSH Reverse Tunnel
 - [X] Configuration as Code (TerraForm + Ansible?) -> Desaster Recovery
@@ -289,11 +290,12 @@ task generate:env
 
 The following variables need to be set for the app to function properly:
 
-| Key     | Description                                                       | Default value (Docker) |
-| ------- | ----------------------------------------------------------------- | ---------------------- |
-| HOST    | holds the hostname which the server listens on                    | 0.0.0.0                |
-| PORT    | holds the TCP port number the server listens on                   | 3000                   |
-| JWT_KEY | holds the symmetric signing key used to verify the JWT signatures | _none_                 |
+| Key               | Description                                                       | Default value (Docker) |
+| ----------------- | ----------------------------------------------------------------- | ---------------------- |
+| HOST              | holds the hostname which the server listens on                    | 0.0.0.0                |
+| PORT              | holds the TCP port number the server listens on                   | 3000                   |
+| JWT_KEY           | holds the symmetric signing key used to verify the JWT signatures | _none_                 |
+| TELEMETRY_ENABLED | holds the flag to specify if metrics should be enabled & reported | true                   |
 
 **Endpoints:**
 
@@ -353,6 +355,19 @@ _INSTRUMENT_BINARY_.
 The combined coverage report can be found in `bin/cov.out`. For CI runs this report is uploaded as artifact (_api-coverage-report_
 ) and held for 7 days.
 
+**Metrics**
+
+When the env var `TELEMETRY_ENABLED` is set to _true_, the core vitals & process creations within the go runtime are collected 
+using [Open Telemetry](https://opentelemetry.io/).
+
+In addition the following custom counters are tracked:
+- auth_successful_count: number of successful authentications (requests)
+- auth_failed_count: number of failed authentications (requests)
+- vault_unlock_count: number of times the "secret" value was retrieved
+
+The metrics can be collected using [Prometheus](https://prometheus.io/) on the route: `/metrics`.
+
+
 ### Web Frontend
 
 The frontend is built using [SvelteKit](https://svelte.dev/docs/kit/introduction) as meta framework. It renders the UI and makes
@@ -371,13 +386,15 @@ task generate:env
 
 The following variables need to be set for the app to function properly:
 
-| Key          | Description                                                        | Default value (Docker) |
-| ------------ | ------------------------------------------------------------------ | ---------------------- |
-| NODE_ENV     | holds the environment type the server should run in                | production             |
-| ORIGIN       | holds the URL the application should listen on                     | http://localhost:4173  |
-| PORT         | holds the TCP port number the server listens on                    | 4173                   |
-| API_BASE_URL | holds the base url pointing to the api instance                    | _none_                 |
-| ACCESS_TOKEN | holds the JWT access token used for authentication against the api | _none_                 |
+| Key               | Description                                                        | Default value (Docker) |
+| ----------------- | ------------------------------------------------------------------ | ---------------------- |
+| NODE_ENV          | holds the environment type the server should run in                | production             |
+| ORIGIN            | holds the URL the application should listen on                     | http://localhost:4173  |
+| PORT              | holds the TCP port number the server listens on                    | 4173                   |
+| API_BASE_URL      | holds the base url pointing to the api instance                    | _none_                 |
+| ACCESS_TOKEN      | holds the JWT access token used for authentication against the api | _none_                 |
+| TELEMETRY_ENABLED | holds the flag to specify if metrics should be enabled & reported  | true                   |
+| TELEMETRY_PORT    | holds the TCP port number the metrics server listens on            | 4138                   |
 
 **Endpoints:**
 
@@ -433,6 +450,15 @@ post-build using [babel](https://babeljs.io/). Their coverage is dumped uppon a 
 
 The combined coverage report can be found in `coverage/combined/lcov.info`. For CI runs this report is uploaded as artifact
 (_web-coverage-report_) and held for 7 days.
+
+**Metrics**
+
+When the env var `TELEMETRY_ENABLED` is set to _true_, the core vitals the NodeJS runtime are collected using 
+[Open Telemetry](https://opentelemetry.io/). Additionally some SvelteKit spcific metrics are also collected, for more details see 
+the [official docs](https://svelte.dev/docs/kit/observability).
+
+The metrics can be collected using [Prometheus](https://prometheus.io/) on a dedicated server and port: 
+`<host>:<telemetry_port>/metrics`.
 
 ## Pipelines
 
