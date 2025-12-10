@@ -9,10 +9,13 @@ RUN pnpm prune --prod # prune non-dev dependencies
 FROM node:jod-alpine
 WORKDIR /app
 EXPOSE 4173
+EXPOSE 4318
 CMD [ "node", "index.js" ]
 ENV NODE_ENV=production
 ENV ORIGIN=http://localhost:4173
 ENV PORT=4173
+ENV TELEMETRY_ENABLED=true
+ENV TELEMETRY_PORT=4138
 ARG ACCESS_TOKEN
 ENV ACCESS_TOKEN=${ACCESS_TOKEN}
 ARG API_BASE_URL

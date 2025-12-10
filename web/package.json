@@ -80,7 +80,12 @@
 		]
 	},
 	"dependencies": {
+		"@opentelemetry/auto-instrumentations-node": "^0.67.2",
+		"@opentelemetry/exporter-prometheus": "^0.208.0",
+		"@opentelemetry/exporter-trace-otlp-proto": "^0.208.0",
+		"@opentelemetry/sdk-node": "^0.208.0",
 		"codejar": "^4.2.0",
+		"import-in-the-middle": "^2.0.0",
 		"mode-watcher": "^1.1.0",
 		"prismjs": "^1.30.0"
 	}

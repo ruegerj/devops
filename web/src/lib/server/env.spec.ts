@@ -16,6 +16,7 @@ describe('validateEnv', () => {
 		// GIVEN
 		delete process.env.API_BASE_URL;
 		delete process.env.ACCESS_TOKEN;
+		delete process.env.TELEMENTRY_ENABLED;
 
 		// WHEN & THEN
 		expect(() => validateEnv(process.env)).toThrow();
@@ -41,6 +42,7 @@ describe('validateEnv', () => {
 		// GIVEN
 		process.env.API_BASE_URL = 'http://foo.bar';
 		process.env.ACCESS_TOKEN = 'foo.bar';
+		process.env.TELEMETRY_ENABLED = 'true';
 
 		// WHEN & THEN
 		expect(() => validateEnv(process.env)).not.toThrow();

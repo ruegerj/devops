@@ -22,6 +22,7 @@ CMD [ "./api" ]
 RUN apk add --no-cache tini
 ENV HOST=0.0.0.0
 ENV PORT=3000
+ENV TELEMETRY_ENABLED=true
 ARG JWT_KEY
 ENV JWT_KEY=${JWT_KEY}
 COPY --from=builder /app/bin/api .
