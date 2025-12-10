@@ -18,6 +18,7 @@ VMs:
 ## Table of contents
 
 - [Project Idea & Tools](#project-idead--tools)
+- [12 Factor Comparison](#12-factor-comparison)
 - [Prerequisites & Setup](#prerequisites--setup)
   - [Local Workspace](#local-workspace)
   - [Git Workflow](#git-workflow)
@@ -84,6 +85,99 @@ Dummy app that displays some information fetched from a private REST api.
 - [ ] New feature with toggle (feature flag)
 - [ ] Database with automated backup
 - [ ] Database with schema change
+
+## 12 Factor Comparison
+
+### 1. Codebase
+
+Both applications frontend & backend are maintained as a "mono"-repo. They are both co-dependent on each other and serve no other
+apps and thus are considered one application. Future features are developed and exist temporarely on feature-branches (see 
+[git workflow](#git-workflow)).
+
+### 2. Dependencies
+
+Both applications specify their package dependencies using the the package manifests of their respective ecosystem (_package.json_ 
+for SvelteKit, _go.mod_ for Go). During a deployment both apps are packaged and deployed as a new Docker image for the current 
+release / version (see [continous deployment](#continous-deployment)) - thus they are fully self-contained.
+
+### 3. Config
+
+Both applications source their configuration for the deployment environment entirely from environment variables (see respective 
+_Configuration_ sections: [frontend](#web-frontend) / [api](#rest-api)).
+
+### 4. Backing services
+
+Both applications push their logs & telemetry into the environment (std-out for logs / http endpoint for telemetry). Thus they are 
+not dependent on any backing services, since they don't care how the environment handles the data. Besides that no backing services
+are used.
+
+### 5. Build, release, run
+
+**Build**
+
+Both apps are compiled in a dedicated "builder" stage in during the Docker image build (see Dockerfile of respective app).
+
+- Frontend: SvelteKit app is compiled and bundled for production in `web/build`, which can be ran using a recent LTS version of the NodeJS runtime.
+- API: Go api is compiled to a single binary targeting the hosts (docker base image) cpu architecture & os and can be executed without a runtime.
+
+**Release**
+
+Both apps are containerized into a Docker image uppon a release and pushed to the GitHub Container Registry (see 
+[Docker containers](#docker-containers)) by the CD-pipeline ([Continous deployment](#continous-deployment)).  Currently only _AMD64_ 
+images are built since we don't have infra that requires otherwise. However the 
+[docker/build-push-action](https://github.com/docker/build-push-action) is used for building the images, which supports multi-target 
+builds [out of the box](https://docs.docker.com/build/ci/github-actions/multi-platform/).
+
+**Run**
+
+The deployed containers are automatically restarted or re-provisioned on failure by k3s. The build & deployment of the images 
+happens for each pushed git tag. The release onto k3s can be manually triggered in ArgoCD and repeated whith whatever version that 
+is desired.
+
+### 6. Processes
+
+Both apps are stateless and can be scaled horizontaly without any issues.
+
+### 7. Port binding
+
+Both apps ship with a dedicated web-server for handling requests which listens on a dedicated port (frontend: _4173_ / api: _3000_). 
+These ports can be wired to any desired TCP-ports on the host, using Docker port binding.
+
+### 8. Concurrency
+
+Both apps use concurrency for handling incoming requests (SvelteKit: NodeJS Event Loop / Go: Goroutines aka lightweight virtual 
+threads). Other than that no form of thread-based concurrency is used.
+
+### 9. Disposability
+
+Both apps only need to start their webserver during startup, thus ensuring a fast boot time. Since they are both stateless, a sudden 
+stop, crash or restart of the containers doesn't have an impact besides an eventually failed web-request that was currently being processed - which can be retried as soon as the container is up again. There are no worker-threads performing async tasks which have 
+to be managed and shut down gracefully.
+
+### 10. Dev/prod parity
+
+The entire app-related tooling used locally and in the pipelines is done using [Task](#https://taskfile.dev/) in order to gurantee 
+consistent outcomes. Since the apps are stateless and the risk for edge-cases related to the local platform / os beeing minimal no 
+docker-based development-environment is used. However for testing [Testcontainers](https://testcontainers.com/) are leveraged in 
+order to have a prod-near environment to test against.
+
+### 11. Logs
+
+Both apps stream all their logs in a unified format to std-out, allowing the runtime environment to collect and process it in the 
+desired manner.
+
+### 12. Admin processes
+
+The entire app-related tooling used locally and in the pipelines is done using [Task](#https://taskfile.dev/). The tasks are defined 
+in the respective _taskfile.yaml_ files and are checked into the repository in order to guarantee consistent outcomes across 
+different states of the codebase.
+
+Everything integration- & deployment related is defined as _GitHub Workflows_. The pipeline definitions are defined using YAML files 
+that are checked into the repository (see `.github/workflows`).
+
+All release- & configuration-related tooling is "abstracted" by [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) and thus 
+standardized and not subject to change gravely.
+
 
 ## Prerequisites & Setup
 
