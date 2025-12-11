@@ -16,6 +16,13 @@ spec:
     helm:
       releaseName: opentelemetry-collector
       values: |
+        mode: deployment
+
+        image:
+          repository: otel/opentelemetry-collector-contrib
+          tag: "0.141.0"
+          pullPolicy: IfNotPresent
+
         config:
           receivers:
             prometheus:
