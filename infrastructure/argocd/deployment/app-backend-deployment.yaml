@@ -19,5 +19,3 @@ spec:
         image: ghcr.io/ruegerj/devops/api
         ports:
         - containerPort: 3000
-      imagePullSecrets:
-        - name: ghcr
