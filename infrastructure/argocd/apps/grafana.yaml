@@ -19,8 +19,8 @@ spec:
       values: |
         ingress:
           enabled: true
-        hosts:
-          - grafana.g08.local
+          hosts:
+            - grafana.g08.local
         datasources:
           datasources.yaml:
             apiVersion: 1
