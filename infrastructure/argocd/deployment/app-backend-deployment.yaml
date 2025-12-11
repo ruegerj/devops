@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-backend-deployment
+  labels:
+    app: app-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-backend
+  template:
+    metadata:
+      labels:
+        app: app-backend
+    spec:
+      containers:
+      - name: app-backend
+        image: ghcr.io/ruegerj/devops/api
+        ports:
+        - containerPort: 3000
+      imagePullSecrets:
+        - name: ghcr
