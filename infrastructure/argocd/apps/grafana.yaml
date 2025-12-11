@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    name: grafana
+spec:
+  project: default
+
+  source:
+    chart: grafana
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 10.3.0
+    helm:
+      releaseName: grafana
+      values: |
+        ingress:
+          enabled: true
+        hosts:
+          - grafana.g08.local
+
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: observability
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+
+  info:
+    - name: 'Grafana:'
+      value: https://grafana.g08.local
+  revisionHistoryLimit: 10
