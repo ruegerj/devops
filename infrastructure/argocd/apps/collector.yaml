@@ -24,7 +24,7 @@ spec:
                   - job_name: 'app-metrics'
                     metrics_path: /metrics
                     static_configs:
-                      - targets: ['app-frontend-service.default.svc.cluster.local:80', 'app-backend-service.default.svc.cluster.local:3000']
+                      - targets: ['app-frontend-service.default.svc.cluster.local:4138', 'app-backend-service.default.svc.cluster.local:3000']
 
           exporters:
             prometheus:
