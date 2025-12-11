@@ -16,15 +16,17 @@ spec:
     helm:
       releaseName: opentelemetry-collector
       values: |
-        config: |
+        config:
           receivers:
             prometheus:
               config:
                 scrape_configs:
-                  - job_name: 'app-metrics'
+                  - job_name: app-metrics
                     metrics_path: /metrics
                     static_configs:
-                      - targets: ['app-frontend-service.default.svc.cluster.local:4138', 'app-backend-service.default.svc.cluster.local:3000']
+                      - targets:
+                          - app-frontend-service.default.svc.cluster.local:4138
+                          - app-backend-service.default.svc.cluster.local:3000
 
           exporters:
             prometheus:
@@ -33,8 +35,10 @@ spec:
           service:
             pipelines:
               metrics:
-                receivers: [prometheus]
-                exporters: [prometheus]
+                receivers:
+                  - prometheus
+                exporters:
+                  - prometheus
 
   destination:
     server: "https://kubernetes.default.svc"
