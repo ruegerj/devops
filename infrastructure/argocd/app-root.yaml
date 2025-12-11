@@ -13,4 +13,4 @@ spec:
   source:
     path: infrastructure/argocd/apps 
     repoURL: https://github.com/ruegerj/devops
-    targetRevision: HEAD
+    targetRevision: feature/app-telemetry
