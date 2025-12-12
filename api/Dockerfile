@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine3.22 AS builder
+FROM golang:1.25-alpine3.23 AS builder
 
 WORKDIR /app
 COPY . .
@@ -13,7 +13,7 @@ RUN if [ "$WITH_COVERAGE" = "true" ]; then \
     fi
 
 
-FROM alpine:3.22
+FROM alpine:3.23
 
 WORKDIR /app
 EXPOSE 3000
