@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - DOCUMENTATION.md
+      - README.md
 
 jobs:
   sync-to-gitlab:
@@ -20,7 +20,7 @@ jobs:
 
       - name: Push to GitLab
         run: |
-          docs_content=$(cat DOCUMENTATION.md)
+          docs_content=$(cat README.md)
           sync_commit="[sync]: ${{ github.event.head_commit.message }}"
           jq -n --arg content "$docs_content" --arg commitMsg "$sync_commit" \
             '{branch:"main", author_name:"G08 Bot", commit_message:$commitMsg, content:$content}' \
