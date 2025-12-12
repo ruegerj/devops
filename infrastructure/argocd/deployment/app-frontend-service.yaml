@@ -13,3 +13,7 @@ spec:
       port: 80
       targetPort: 4173
       name: http
+    - protocol: TCP
+      port: 4138
+      targetPort: 4138
+      name: metrics

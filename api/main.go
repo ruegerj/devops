@@ -24,9 +24,15 @@ func main() {
 		log.Panic(err)
 	}
 
+	telemetryFlag, err := resolveEnvVar("TELEMETRY_ENABLED")
+	if err != nil {
+		log.Panic(err)
+	}
+	telemetryEnabled := telemetryFlag == "true"
+
 	go func() {
 		var app App
-		app.Initialize(jwtKey)
+		app.Initialize(jwtKey, telemetryEnabled)
 
 		addr := fmt.Sprintf("%s:%s", host, port)
 		app.Run(addr)

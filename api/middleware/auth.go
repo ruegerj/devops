@@ -8,6 +8,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwt"
+	"github.com/ruegerj/devops/api/telemetry"
 )
 
 type AuthContextKey int // use dedicated key type to prevent context key collisions
@@ -21,6 +22,7 @@ func Authenticate(privateKey string, logger *slog.Logger, next http.Handler) htt
 		token, err := jwt.ParseRequest(r, jwt.WithKey(jwa.HS256(), []byte(privateKey)))
 		if err != nil {
 			logger.Warn("Failed user authentication", slog.Any("error", err))
+			telemetry.FailedAuthCounter.Inc()
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -33,6 +35,7 @@ func Authenticate(privateKey string, logger *slog.Logger, next http.Handler) htt
 		r = r.WithContext(ctx)
 
 		logger.Info(fmt.Sprintf("Authenticated user: %s", username), slog.String("username", username))
+		telemetry.SuccessfulAuthCounter.Inc()
 		next.ServeHTTP(w, r)
 	})
 }

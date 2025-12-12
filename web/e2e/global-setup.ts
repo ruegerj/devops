@@ -13,7 +13,7 @@ export default async function globalSetup() {
 	// build & start testcontainer for api
 	const image = await GenericContainer.fromDockerfile(join(cwd(), '..', 'api')).build();
 	const container = await image
-		.withEnvironment({ JWT_KEY: jwtSigningKey })
+		.withEnvironment({ JWT_KEY: jwtSigningKey, TELEMETRY_ENABLED: 'false' })
 		.withExposedPorts(apiPort)
 		.withWaitStrategy(Wait.forHttp('/health', apiPort))
 		.start();
@@ -46,7 +46,8 @@ export default async function globalSetup() {
 		env: {
 			...process.env,
 			API_BASE_URL: apiUrl,
-			ACCESS_TOKEN: accessToken
+			ACCESS_TOKEN: accessToken,
+			TELEMETRY_ENABLED: 'false'
 		},
 		stdio: 'inherit',
 		detached: true

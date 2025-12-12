@@ -61,3 +61,5 @@ tasks:
       - truncate -s 0 .env
       - echo "API_BASE_URL=http://localhost:3000" >> .env
       - echo "ACCESS_TOKEN=$(task -d ../api generate:jwt)" >> .env
+      - echo "TELEMETRY_ENABLED=true" >> .env
+      - echo "TELEMETRY_PORT=4318" >> .env

@@ -32,10 +32,14 @@ VMs:
   - [Continous Deployment](#continous-deployment)
 - [Infrastructure](#infrastructure)
   - [Network Access for Github Actions](#network-access-for-github-actions)
-  - [Automated infrastructure deployment via Ansible](#automated-infrastructure-deployment-via-ansible)
+  - [Ansible](#ansible)
     - [SSH Setup](#ssh-setup)
     - [Tests](#tests)
-    - [Deploy PROD](#deploy-prod)
+    - [Rollout To Production](#rollout-to-production)
+- [Deployment](#deployment)
+  - [ArgoCD](#argocd)
+  - [App of Apps Pattern](#app-of-apps-pattern)
+- [Observability](#observability)
 - [Secure Development Lifecycle](#secure-development-lifecycle)
   - [Dependency Scanning](#dependency-scanning)
   - [Code Analysis](#code-analysis)
@@ -43,6 +47,11 @@ VMs:
   - [Credential Scanning](#credential-scanning)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
+
+Internal
+  - [ArgoCD](https://argo.g08.local)
+  - [App](https://app.g08.local)
+  - [Grafana](https://grafana.g08.local)
 
 External
   - [SonarQube - API](https://sonarcloud.io/project/overview?id=ruegerj_devops_api)
@@ -76,6 +85,7 @@ Dummy app that displays some information fetched from a private REST api.
 
 - [X] K8S or K3S Hosting
 - [X] ArgoCD for Deployments
+- [X] OTEL app metrics (Prometheus)
 - [ ] Credential Vault (Hashicorp Vault?)
 - [X] SSH Reverse Tunnel
 - [X] Configuration as Code (TerraForm + Ansible?) -> Desaster Recovery
@@ -289,11 +299,12 @@ task generate:env
 
 The following variables need to be set for the app to function properly:
 
-| Key     | Description                                                       | Default value (Docker) |
-| ------- | ----------------------------------------------------------------- | ---------------------- |
-| HOST    | holds the hostname which the server listens on                    | 0.0.0.0                |
-| PORT    | holds the TCP port number the server listens on                   | 3000                   |
-| JWT_KEY | holds the symmetric signing key used to verify the JWT signatures | _none_                 |
+| Key               | Description                                                       | Default value (Docker) |
+| ----------------- | ----------------------------------------------------------------- | ---------------------- |
+| HOST              | holds the hostname which the server listens on                    | 0.0.0.0                |
+| PORT              | holds the TCP port number the server listens on                   | 3000                   |
+| JWT_KEY           | holds the symmetric signing key used to verify the JWT signatures | _none_                 |
+| TELEMETRY_ENABLED | holds the flag to specify if metrics should be enabled & reported | true                   |
 
 **Endpoints:**
 
@@ -353,6 +364,19 @@ _INSTRUMENT_BINARY_.
 The combined coverage report can be found in `bin/cov.out`. For CI runs this report is uploaded as artifact (_api-coverage-report_
 ) and held for 7 days.
 
+**Metrics**
+
+When the env var `TELEMETRY_ENABLED` is set to _true_, the core vitals & process creations within the go runtime are collected 
+using [Open Telemetry](https://opentelemetry.io/).
+
+In addition the following custom counters are tracked:
+- auth_successful_count: number of successful authentications (requests)
+- auth_failed_count: number of failed authentications (requests)
+- vault_unlock_count: number of times the "secret" value was retrieved
+
+The metrics can be collected using [Prometheus](https://prometheus.io/) on the route: `/metrics`.
+
+
 ### Web Frontend
 
 The frontend is built using [SvelteKit](https://svelte.dev/docs/kit/introduction) as meta framework. It renders the UI and makes
@@ -371,13 +395,15 @@ task generate:env
 
 The following variables need to be set for the app to function properly:
 
-| Key          | Description                                                        | Default value (Docker) |
-| ------------ | ------------------------------------------------------------------ | ---------------------- |
-| NODE_ENV     | holds the environment type the server should run in                | production             |
-| ORIGIN       | holds the URL the application should listen on                     | http://localhost:4173  |
-| PORT         | holds the TCP port number the server listens on                    | 4173                   |
-| API_BASE_URL | holds the base url pointing to the api instance                    | _none_                 |
-| ACCESS_TOKEN | holds the JWT access token used for authentication against the api | _none_                 |
+| Key               | Description                                                        | Default value (Docker) |
+| ----------------- | ------------------------------------------------------------------ | ---------------------- |
+| NODE_ENV          | holds the environment type the server should run in                | production             |
+| ORIGIN            | holds the URL the application should listen on                     | http://localhost:4173  |
+| PORT              | holds the TCP port number the server listens on                    | 4173                   |
+| API_BASE_URL      | holds the base url pointing to the api instance                    | _none_                 |
+| ACCESS_TOKEN      | holds the JWT access token used for authentication against the api | _none_                 |
+| TELEMETRY_ENABLED | holds the flag to specify if metrics should be enabled & reported  | true                   |
+| TELEMETRY_PORT    | holds the TCP port number the metrics server listens on            | 4138                   |
 
 **Endpoints:**
 
@@ -433,6 +459,15 @@ post-build using [babel](https://babeljs.io/). Their coverage is dumped uppon a 
 
 The combined coverage report can be found in `coverage/combined/lcov.info`. For CI runs this report is uploaded as artifact
 (_web-coverage-report_) and held for 7 days.
+
+**Metrics**
+
+When the env var `TELEMETRY_ENABLED` is set to _true_, the core vitals the NodeJS runtime are collected using 
+[Open Telemetry](https://opentelemetry.io/). Additionally some SvelteKit spcific metrics are also collected, for more details see 
+the [official docs](https://svelte.dev/docs/kit/observability).
+
+The metrics can be collected using [Prometheus](https://prometheus.io/) on a dedicated server and port: 
+`<host>:<telemetry_port>/metrics`.
 
 ## Pipelines
 
@@ -644,9 +679,9 @@ sequenceDiagram
     srv-001-devops.ls.eee.intern->devops-bastion: ssh -R 3333:localhost:22 debian@devops-bastion -i id_devops-bastion
 ```
 
-### Automated infrastructure deployment via Ansible
+### Ansible
 Students were given four plain debian 12 (bookworm) VMs to deploy there infrastructure.
-In order to prepare the infrastructure needed [Ansible](https://docs.ansible.com/) was used as a Infrastructure as Code (IaC) tool, enabeling fast and declarative provisioning aswell as rebuilding capabilities in case of a Disaster Recovery (DR) scenario. 
+In order to prepare the infrastructure needed [Ansible](https://docs.ansible.com/) was used as a Infrastructure as Code (IaC) tool, enabeling fast and declarative infrastructure provisioning aswell as rebuilding capabilities in case of a Disaster Recovery (DR) scenario. 
 The diagram below gives quick overview of the playbook used for provisioning:
 
 ```mermaid
@@ -753,7 +788,7 @@ After finishing testing or if a new testrun with clean VMs is desired, the exist
 task infra:stage:down
 ```
 
-#### Deploy PROD
+#### Rollout To Production
 In order to deploy the production environment, this repository was cloned to srv-001.devops.ls.eee.intern and the ansible `site.yaml` playbook executed against it.
 
 ```bash
@@ -769,19 +804,130 @@ ansible@srv-001:~$ cd /home/ansible/ansible
 ansible-playbook -i inventories/prod site.yml
 ```
 
-### Workload deployment via ArgoCD
-Workloads are deployed to the K3s cluster using argocd with a GitOps approach.
-The ArgoCD dashboard can be reached within the HSLU network via [https://argo.g08.local](https://argo.g08.local)
+>[!NOTE]
+> In real world production scenarios tools like [Ansible-Tower](https://www.redhat.com/en/blog/intro-ansible-tower) or it's open source fork [AWX](https://github.com/ansible/awx) may get used for central management and drift detection within infrastructure deployment projects. Due to limited time constraints an this project being relatively small, it was opted against the usage of such technlogies, rather opting for a broader set of devops topics to be applied.
+
+## Deployment
+Within the K3s cluster the main application developed in this repository aswell as a observability stack consisting out of  [OpenTelementry](https://opentelemetry.io/), [Prometheus](https://github.com/prometheus/prometheus) and [Grafana](https://github.com/grafana/grafana) is deployed.
+
+The graphic below gives a brief overview of all the components in the deployment:
+```mermaid
+---
+title: App and Observability Deployment
+---
+flowchart LR
+    app_frontend[App Frontend]
+    app_backend[App Backend]
+    otel_collector[OTel Collector]
+    prometheus[Prometheus]
+    grafana[Grafana]
+
+    app_ingress[/app.g08.local/]
+    grafana_ingress[/grafana.g08.local/]
+
+    app_ingress -->|access| app_frontend
+    grafana_ingress --> |access| grafana
+
+    app_frontend -->|access| app_backend
+
+    grafana --> |visualize metrics| prometheus
+
+    otel_collector --> |read metrics| app_frontend
+    otel_collector --> |read_metrics| app_backend
+    otel_collector --> |export metrics| prometheus
+```
 
 > [!NOTE] 
-> In order to access access the Web-UIs deployed in this project please add the following lines to your hosts file: 
-> - **Unix (etc/hosts)**
-> - **Windows (C:\Windows\System32\drivers\etc\hosts)** \
+> In order to access the Web-UIs within this deployment aswell as the ArgoCD-UI please add the following lines to your hosts file  \
+>
+> **Unix:** etc/hosts \
+> **Windows:** C:\Windows\System32\drivers\etc\hosts \
+> \
 > 10.176.137.103 argo.g08.local \
-> 10.176.137.103 app.g08.local
+> 10.176.137.103 app.g08.local \
+> 10.176.137.103 grafana.g08.local
 
-### App of Apps pattern
-Within ArgoCD the [App of Apps Pattern](https://argo-cd.readthedocs.io/en/latest/operator-manual/cluster-bootstrapping/) is used to create a cascading rollout of all cluster objects.
+### ArgoCD
+Workloads are deployed to the K3s cluster using the [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) instance previously deployed via [Ansible](#ansible) in a GitOps approach.
+
+The ArgoCD dashboard can be reached within the HSLU network via [https://argo.g08.local](https://argo.g08.local) \
+
+Username: admin \
+Password:
+
+```bash
+# connect to labadmin@srv-001.devops.ls.eee.intern
+
+# labadmin@srv-001:~$ alias sua
+# alias sua='sudo /bin/su ansible'
+
+labadmin@srv-001:~$ sua
+
+ansible@srv-001:~$ cd /home/ansible/ansible
+
+ansible@srv-001:~$ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+```
+
+### App of Apps Pattern
+Within ArgoCD the [App of Apps Pattern](https://argo-cd.readthedocs.io/en/latest/operator-manual/cluster-bootstrapping/) is used to create a cascading rollout of the main application and the observability stack. 
+
+The deployment of the [app-root.yaml](/infrastructure/argocd/app-root.yaml) ArgoCD application CRD into the cluster leads to synchronization of all dependent subapplications and components.
+
+```mermaid
+---
+title: ArgoCD App in Apps Deployment
+---
+flowchart LR
+
+    root_app[root-app]
+
+    app[app]
+
+    grafana[grafana]
+
+    prometheus[prometheus]
+
+    otel_collector[otel-collector]
+
+    root_app --> app
+
+    root_app --> grafana
+
+    root_app --> prometheus
+
+    root_app --> otel_collector
+
+```
+
+- **root-app** - boilerplate application deployment containing all subapps
+- **app** - the svelete/go application developed in this repository
+- **grafana** - grafana dashboard for visualizing collected stored metrics from prometheus
+- **prometheus** - backend for metric peristence
+- **otel-collector** - opentelemetry collector scraping prometheus metrics from the app (front- and backend)
+
+## Observability
+In order to gain insights into the application runtime, aswell as the metrics exposed by the front- and backend of the deployed application an [OTel-collector](https://opentelemetry.io/docs/collector/) in combination with [Prometheus](https://github.com/prometheus/prometheus) for persistence and [Grafana](https://github.com/grafana/grafana) for visualization is used. 
+
+The grafana dashboards can be reached via: [https://grafana.g08.local](https://grafana.g08.local) from within the HSLU network. \
+
+Username: admin \
+Password: 
+
+```bash
+# connect to labadmin@srv-001.devops.ls.eee.intern
+
+# labadmin@srv-001:~$ alias sua
+# alias sua='sudo /bin/su ansible'
+
+labadmin@srv-001:~$ sua
+
+ansible@srv-001:~$ cd /home/ansible/ansible
+
+ansible@srv-001:~$ kubectl get secret   -n observability grafana   -o jsonpath="{.data.admin-password}" | base64 --decode
+```
+
+>[!NOTE]
+> The current observability stack only supports metrics. For application log and trace collection capabilites further solutions like [Loki](https://github.com/grafana/loki) and [Tempo](https://github.com/grafana/tempo) should be added to the stack. The [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics) exporter included in the Prometheus deployment add limited cluster visability. For additional fully fletched cluster health monitoring options like the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) could be considered.
 
 ## Secure Development Lifecycle
 

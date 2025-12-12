@@ -48,7 +48,8 @@ func TestMain(m *testing.M) {
 		},
 		ExposedPorts: []string{"3000/tcp"},
 		Env: map[string]string{
-			"JWT_KEY": jwtSigningKey,
+			"JWT_KEY":           jwtSigningKey,
+			"TELEMETRY_ENABLED": "false",
 		},
 		WaitingFor: wait.ForHTTP("/health").
 			WithStartupTimeout(10 * time.Second),
@@ -112,6 +113,7 @@ func TestMain(m *testing.M) {
 func TestHealthEndpoint(t *testing.T) {
 	// WHEN
 	resp, err := http.Get(fmt.Sprintf("%s/health", apiBaseURL))
+	defer resp.Body.Close()
 
 	// THEN
 	require.NoError(t, err, "request must succeed")

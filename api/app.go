@@ -7,8 +7,12 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/ruegerj/devops/api/handlers"
 	"github.com/ruegerj/devops/api/middleware"
+	"github.com/ruegerj/devops/api/telemetry"
 )
 
 type App struct {
@@ -17,12 +21,16 @@ type App struct {
 	jwtSigningKey string
 }
 
-func (a *App) Initialize(jwtKey string) {
+func (a *App) Initialize(jwtKey string, isTelemetryEnabled bool) {
 	a.jwtSigningKey = jwtKey
 	a.logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	a.router = http.NewServeMux()
 
 	a.initializeRoutes()
+
+	if isTelemetryEnabled {
+		a.setupTelemtryCollection()
+	}
 }
 
 func (a *App) Run(addr string) {
@@ -43,4 +51,23 @@ func (a *App) initializeRoutes() {
 		a.jwtSigningKey,
 		a.logger,
 		http.HandlerFunc(handlers.Secret)))
+}
+
+func (a *App) setupTelemtryCollection() {
+	registry := prometheus.NewRegistry()
+
+	// custom metrics
+	registry.MustRegister(
+		telemetry.SuccessfulAuthCounter,
+		telemetry.FailedAuthCounter,
+		telemetry.UnlockCounter,
+	)
+
+	// general runtime metrics
+	registry.MustRegister(
+		collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+	)
+
+	a.router.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 }
