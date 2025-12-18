@@ -47,6 +47,8 @@ VMs:
   - [Credential Scanning](#credential-scanning)
 - [Miscellaneous](#miscellaneous)
   - [GitLab Docs Sync](#gitlab-docs-sync)
+- [Lessons Learned](#lessons-learned)
+- [Possible Improvements](#possible-improvements)
 
 Internal
   - [ArgoCD](https://argo.g08.local)
@@ -67,7 +69,6 @@ Dummy app that displays some information fetched from a private REST api.
 
 - [X] Frontend - SvelteKit
 - [X] Backend - Go REST API
-- [ ] (Database - PostgreSQL) optional as extension
 
 **DevOps Features**
 
@@ -85,18 +86,16 @@ Dummy app that displays some information fetched from a private REST api.
     - [X] Image Push (GitHub Container Registry)
     - [X] (ArgoCD Sync)
 
-- [X] K8S or K3S Hosting
+- [X] K8S or **K3S** Hosting
 - [X] ArgoCD for Deployments
 - [X] OTEL app metrics (Prometheus)
-- [ ] Credential Vault (Hashicorp Vault?)
 - [X] SSH Reverse Tunnel
 - [X] Configuration as Code (TerraForm + Ansible?) -> Desaster Recovery
 
 **Extensions**
 
-- [ ] New feature with toggle (feature flag)
-- [ ] Database with automated backup
-- [ ] Database with schema change
+- [X] Disaster Recovery with Ansible & ArgoCD
+- [X] Observability
 
 ## 12 Factor Comparison
 
@@ -1000,3 +999,22 @@ GitLab REST API.
 - [jq](https://jqlang.org/) is used to construct the JSON body for the file update request
 - the GitLab _project-id_ & _access-token_ are stored as Action Variable or Secret respectively
 - [cURL](https://curl.se/) is used to perform the HTTP request to the GitLab API
+
+## Lessons Learned
+
+- For all four of us, it was the first time working with these technologies and GitOps approach. We learned a lot in all of the chapter above.
+- We have noticed once again that working with multiple operating systems should not be taken lightly.
+- After time consuming debugging sessions, we learned, that EEE Lab is micro segmented and k3s needed some more ports to be open. 
+The lesson learned of this, is to check if network traffic itself is possible or correctly configured, before going up the OSI.
+- Sonarqube is overkill for a project this size and is more configuration work than its useful for small projects.
+- In order to capture accurate coverage results for meta webapps like SvelteKit there is some considerable amount of engineering work
+in order to setup a proper working harness that instrument both client and server side code and merges the results afterwards correctly.
+
+## Possible Improvements
+
+- Secret vault for secrets management
+- If the main application would have been with persisted data, data backup should have been implemented.
+- Monitoring for the infrastructure (cluster) itself
+- Log collection
+- Meaningful dashboards for the observability stack
+- Improve Mgmt-System/HAProxy SPF
